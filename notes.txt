@@ -1,0 +1,13 @@
+setting up the database schema
+first type npm install prisma inside the terminal
+this will create a folder with the schema.prisma file inside 
+that is where the models for the database will be there
+and believe me if you want a sane mind you need to remove the output part from the generator part of schema.prisma 
+to make sure the generator is actually ES6 compatible
+then in your .env file set the DATA_BASE_URL to some data base you created
+first install postgres and create a database 
+Then in your .env file make sure the DATA_BASE_URL is structured in the following way
+postgres://username:password@localhost:5432/yourDataBaseName and make sure to insert the password you used for postgres set up
+
+// then first write npm init -y in the terminal to create node_modules and package.json to keep versions of dependencies you install
+write npm install to get everything from package.json
