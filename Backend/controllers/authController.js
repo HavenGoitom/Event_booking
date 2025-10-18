@@ -1,9 +1,4 @@
-import {
-  CreateUser, CreateAndUpdateProfile , 
-  Createorganiser , GivenEmailSelectTheUser , 
-  CreateEvent , GivenEventIdSelectEvent ,
-  GivenIdSelectOrganiser} 
-from '../../DataBaseManipulation.js';
+import {CreateUser, Createorganiser} from '../../DataBaseManipulation.js';
 import { prisma } from '../../prismaClient.js';
 import { generateTokens } from '../utils/generateTokens.js';
 import bcrypt from 'bcrypt';
