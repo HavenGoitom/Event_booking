@@ -6,8 +6,23 @@ and believe me if you want a sane mind you need to remove the output part from t
 to make sure the generator is actually ES6 compatible
 then in your .env file set the DATA_BASE_URL to some data base you created
 first install postgres and create a database 
+
+to create the database first go to this path in cmd:
+C:\Program Files\PostgreSQL\18\bin the 18 part could be different based on the time you install it.
+so cd C:\Program Files\PostgreSQL\18\bin
+then write psql -U postgres(this is your username)
+then it will ask you for password: type your password and then your are logged in.
+now you can create your database.
+
 Then in your .env file make sure the DATA_BASE_URL is structured in the following way
 postgres://username:password@localhost:5432/yourDataBaseName and make sure to insert the password you used for postgres set up
 
+
 // then first write npm init -y in the terminal to create node_modules and package.json to keep versions of dependencies you install
 write npm install to get everything from package.json
+
+after this run npx prisma generate this creates a client you can use in your Node/Express app.
+then npx prisma migrate dev --name init if this is not saying Your database is now in sync with your schema
+or opening prisma.js change the name of prisma.js to prismaClient.js it's not opening because of nameing confilict
+
+
