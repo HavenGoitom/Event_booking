@@ -21,6 +21,7 @@ async function CreateUser(UserInfo) {
     
 }
 
+
 async function Createorganiser(organiserInfo) {
     // backend will send the stringified info abt the organiser
     return await prisma.organizer.create({
