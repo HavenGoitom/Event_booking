@@ -123,7 +123,7 @@ export async function CreateAndUpdateProfile(ProfilePicture) {
 
 // creating an event
 export async function CreateEvent(EventAndAdvertisementInfo){
-    // EventInfo = {name , description , Location , AvailableTicket , normalprice , vipPrice }             String
+    // EventInfo = {name , description , Location , AvailableTicket , normalprice , vipPrice }String
     // but an event is dependent on an organiser
     // so when 
     // EventInfo needs to be structured like the model and will have the email of the organiser
