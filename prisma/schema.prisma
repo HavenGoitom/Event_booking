@@ -6,28 +6,28 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("Local_Data_Base_url")
-  // just for the sake of testing
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id                      String          @id @default(uuid())
+  id                      String  @id @default(uuid())
   name                    String
-  email                   String          @unique
+  email                   String  @unique
   password                String
-  profilePicture          profilePicture?
   // a single user can go to many events
-  eventsBookedAndAttended Event[]         @relation(name: "eventPeople")
+  eventsBookedAndAttended Event[] @relation(name: "eventPeople")
+  // users dont have a profile picture
 }
 
 model Organiser {
   id                      String          @id @default(uuid())
   name                    String
+  merchantId              String          @unique
   profilePicture          profilePicture?
   // to ensure a single organizer can have one logo
   email                   String          @unique
@@ -67,8 +67,6 @@ model AdvertisementForEvent {
 model profilePicture {
   // in prisma model names are singular
   id             String     @id @default(uuid())
-  userId         String?    @unique
-  user           User?      @relation(fields: [userId], references: [id])
   organisationId String?    @unique
   organisation   Organiser? @relation(fields: [organisationId], references: [id])
   picture        String
@@ -77,6 +75,3 @@ model profilePicture {
 // the organiser needs to be optional like one of them needs to be null
 
 // picture will be a link to the cloud storage
-
-// in the profile picture it will have 2 foreign keys ie it can refer to 
-// users or organisers but not both at the same time
