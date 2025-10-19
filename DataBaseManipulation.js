@@ -49,13 +49,14 @@ export async function GivenEmailSelectTheUser(Info){
                 email : Info.Email
             } ,
             select : {
-                id : true
+                id : true,
+                phone : true
             }
         })
 
         // findUnique returns an object with the selected property 
 
-        return usersId?.id
+        return usersId
         // if it is not null
     }
 
@@ -68,11 +69,12 @@ export async function GivenEmailSelectTheUser(Info){
                 email : Info.Email
             } ,
             select : {
-                id : true
+                id : true,
+                BankAccount : true,
             }
         })
 
-        return organiserId?.id
+        return organiserId
     }
 
 
@@ -95,8 +97,8 @@ export async function CreateAndUpdateProfile(ProfilePicture) {
 
 
     const whereClause = ProfilePicture.user
-        ? { userId: EntityId }
-        : { organisationId: EntityId };
+        ? { userId: EntityId.id }
+        : { organisationId: EntityId.id };
         
 
     // upsert function is something that if the user exists then it will update it else if the user dont exist it will create it 
@@ -172,6 +174,28 @@ export async function GivenEventIdSelectEvent(EventId){
     // and call the GivenIdSelectOrganiser(OrganiserId) bc an event can only be created by a single organiser
 }
 
+export async function GivenEventIdSelectAccountAndBankFromOrganiser(EventId){
+    // EventId is an id itself not the object
+    let organiser = await prisma.event.findUnique({
+        where : {
+            id : EventId
+        },
+        select : {
+            organiserId : true
+        }
+    })
+
+    return await prisma.organiser.findUnique({
+        where : {
+            id : organiser.organiserId
+        },
+        select : {
+            BankAccount : true ,
+            Bank : true
+        }
+    })
+}
+
 
 export async function GivenIdSelectOrganiser(OrganiserId) {
     return prisma.organiser.findUnique({
@@ -182,7 +206,80 @@ export async function GivenIdSelectOrganiser(OrganiserId) {
     
 }
 
+export async function ReturnTheTotalPriceOfTickets(UsersEventChoice) {
+    // UsersEventChoice will have = { EventId , TicketType , Quantity }
+    let { EventId , TicketType , Quantity } = UsersEventChoice
+    let priceSelected =  TicketType.vip ? priceVip : priceNormal
+    let EventPrice = await prisma.event.findUnique({
+        where : {
+            id : EventId
+        } ,
+        select : {
+            [priceSelected] : true
+        }
+    })
+
+    let numOfTicket = TicketQuantity || 1
+    let price = EventPrice.priceNormal || EventPrice.priceVip
+    // bc it will only have either one
+    // and users can buy both vip // both normal not combination
+
+    return numOfTicket * price
+    
+}
+
 // creating advertisment
 // the code 
 // refresh token and access token 
+
+
+export async function EventTableUpdate(EventTicketsBought){
+    // whenever u use this function u have to check if the tickets are available first
+    // so EventTicketsBought {eventId , Vip : true / false , NumOfTicketsBought}
+    let {eventId , Vip , NumOfTicketsBought} = EventTicketsBought
+    let EventUpdated;
+    if (EventTicketsBought.Vip){
+        // ie if it is vip then update availableVip
+        EventUpdated = await prisma.event.update({
+            data : {
+                AvailableTicketsVip :   AvailableTicketsVip - 1
+            } ,
+            where :{
+                AND : [
+                    {id : eventId} ,
+                    {AvailableTicketsVip : {gt : 0}}
+                ]
+                // there needs to be a single vip ticket inorder for it to be selected
+            }
+        })
+
+        
+    }
+
+    else{
+        // the event is not vip so update normal
+        EventUpdated = await prisma.event.update({
+            data : {
+                AvailableTicketsNormal :   AvailableTicketsNormal- 1
+            } ,
+            where :{
+                AND : [
+                    {id : eventId} ,
+                    {AvailableTicketsNormal: {gt : 0}}
+                ]
+                // there needs to be a single vip ticket inorder for it to be selected
+            }
+    })
+    }
+
+
+    if (EventUpdated){
+        return EventUpdated
+    } 
+    
+    else{
+        console.log(`Event ${eventId} has been sold out.`);
+        return null;
+    }
+}
 

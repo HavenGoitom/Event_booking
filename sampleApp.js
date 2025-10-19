@@ -6,8 +6,8 @@ import { CreateUser, CreateAndUpdateProfile , Createorganiser , GivenEmailSelect
 
 const app = express();
 
-app.listen(3000 , () => {
-    console.log('Server is up and running.');
+app.listen(6000 , () => {
+    console.log('Server is up and running at port 6000.');
 })
 
 app.get('/' , () => {

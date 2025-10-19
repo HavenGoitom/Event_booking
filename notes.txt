@@ -11,3 +11,8 @@ postgres://username:password@localhost:5432/yourDataBaseName and make sure to in
 
 // then first write npm init -y in the terminal to create node_modules and package.json to keep versions of dependencies you install
 write npm install to get everything from package.json
+// npm init -y 
+// npm install prisma
+// npm install @prisma/client
+// npx prisma init -> initializes prisma/ folder with schema.prisma
+
