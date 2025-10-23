@@ -1,62 +1,60 @@
-import {CreateAndUpdateProfile} from '../../DataBaseManipulation.js';
-import { prisma } from '../../prismaClient.js';
+import {CreateAndUpdateProfile} from '../DataBaseManipulation.js';
+import { prisma } from '../prismaClient.js';
 import path from 'path';
 
 
 export const createAndUpdateProfile = async (req, res) => {
   try {
+    console.log('--- multer file ---', req.file);
+    console.log('--- req.body ---', req.body);
+    //console.log('keys:', Object.keys(req.body).map(k => JSON.stringify(k)));
+
     // multer set upload.single('profilePicture'), so req.file should exist
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
-    const roleParam = req.params.role; // from route /upload/:role
-    if (roleParam !== 'org') return res.status(403).json({ message: 'Role not supported' });
-
-    const { organiserId } = req.body;
-    if (!organiserId) return res.status(400).json({ message: 'organiserId required in body' });
-
-    // Optionally check authenticated user matches organiserId (if you store user id in req.user)
-    if (req.user) {
-      // if you want to enforce that only the organiser can change their pfp:
-      if (req.user.role !== 'org' || req.user.id !== organiserId) {
-        return res.status(403).json({ message: 'Not authorized to change this organiser profile' });
-      }
-    }
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'email required in body' });
 
     // verify organiser exists
-    const organiser = await prisma.organiser.findUnique({ where: { id: organiserId } });
+    const organiser = await prisma.organiser.findUnique({ where: { email: email }});
     if (!organiser) return res.status(404).json({ message: 'Organiser not found' });
+    console.log(organiser)
 
     // Build the accessible path that matches your static route (app.use('/uploads', express.static('uploads')))
     const filename = req.file.filename ?? path.basename(req.file.path);
     const picturePath = path.posix.join('/uploads', 'profilePicture', filename); // e.g. /uploads/profilePicture/123.png
 
-    const profile = await CreateAndUpdateProfile({
-      organiserId: organiser.id,
-      picturePath
+   await CreateAndUpdateProfile({
+      organiser: true,
+      Email: email,
+      profile: picturePath
     });
 
     // full URL for frontend
-    const fullUrl = `${req.protocol}://${req.get('host')}${profile.picture}`;
+    //const fullUrl = `${req.protocol}://${req.get('host')}${picturePath}`;
 
-    return res.status(200).json({ message: 'Profile picture saved', profile, url: fullUrl });
+    return res.status(200).json({ message: 'Profile picture saved',url: picturePath });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 };
+
+
+
 export const getProfile = async (req,res)=>{
     try {
-        const { id, role } = req.params; // get id and role from route params
+        const { id } = req.params; // get id from route params
 
-        // fetch user based on role
-        let user;
-        if (role === 'user') {
-        profile = await prisma.profile.findUnique({ where: { id: id } });
-        } else if (role === 'org') {
-        profile = await prisma.profile.findUnique({ where: { id: id } });
-        } else {
-        return res.status(400).json({ message: 'Role not supported' });
-        }
+        let profile = await prisma.organiser.findUnique({ where: { id: id } , select: {
+           name: true,               
+           profilePicture: true,      
+           BankAccount : true,           
+           Bank: true,                  
+           email:true,                   
+           DescriptionAboutCompany:true, 
+        } });
+        console.log(profile);
 
         if (!profile) return res.status(404).json({ message: 'Profile not found' });
         return res.status(200).json(profile);

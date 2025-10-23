@@ -9,8 +9,9 @@ eventRouter.use(authenticateToken);
 
 eventRouter.get('/',getAllEvents);//shows all the events created so far in the homepage
 eventRouter.get('/my/:role:id', myEvents); // gets the events the user has booked before for organize gets the events he created before 
-//myevents will be deleted after 15 days of the event
 eventRouter.post('/create',uploadEvent.single('eventPhoto'),  createEvent); //creates events for organizer
+
+
 /*
 When posting from a browser form, ensure:
 Form enctype="multipart/form-data" OR
@@ -27,7 +28,7 @@ it should have the same name as this in the frontend
 upload.single('profilePicture') is a middleware that accepts one file and saves it in your /uploads folder
 */
 // POST /api/events/:id/book   -> book the event with event is
-eventRouter.post('/:id/book', bookEvent);
+//eventRouter.post('/:id/book', bookEvent);
 
 
 export default eventRouter;
