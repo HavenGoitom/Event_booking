@@ -1,5 +1,7 @@
 import express from 'express';
-import {signup, login, refreshToken} from '../controllers/authController.js';
+import {signup, login} from '../controllers/authController.js';
+import { refreshToken } from '../controllers/refreshToken.js';
+
 const authRouter = express.Router(); //creates a mini “sub-application” that you can attach routes to.
 
 authRouter.post('/signup', signup);

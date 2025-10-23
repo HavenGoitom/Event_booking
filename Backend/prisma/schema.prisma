@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  // output   = "../generated/prisma"
+  //output   = "../generated/prisma"
 }
 
 datasource db {
@@ -49,6 +49,7 @@ model Event {
   id                     String                 @id @default(uuid())
   name                   String
   description            String
+  dayOfEvent             DateTime
   LocationOfEvent        String
   AvailableTicketsNormal Int
   AvailableTicketsVip    Int

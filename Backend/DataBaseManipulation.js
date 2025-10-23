@@ -30,7 +30,7 @@ export async function CreateUser(UserInfo) {
 
 export async function Createorganiser(organiserInfo) {
     // backend will send the stringified info abt the organiser
-    return await prisma.organizer.create({
+    return await prisma.organiser.create({
         data : organiserInfo
     })
 }
@@ -64,7 +64,7 @@ export async function GivenEmailSelectTheUser(Info){
 
     else if (Info.organiser){
         // ie it is organizer 
-        let organiserId = await prisma.organizer.findUnique({
+        let organiserId = await prisma.organiser.findUnique({
             where : {
                 email : Info.Email
             } ,
@@ -89,26 +89,23 @@ export async function GivenEmailSelectTheUser(Info){
 // so given an email u need to query both the user and the organizer
 // to avoid that 2 times querying everything u send from the front end needs to have 
 export async function CreateAndUpdateProfile(ProfilePicture) {
-    // ProfilePicture = {user : true , organiser : false , Email : email , profile : url_of_the_profile}
+    // ProfilePicture = { organiser : true, Email : email , profile : url_of_the_profile}
          
     let EntityId = await GivenEmailSelectTheUser(ProfilePicture);
     // then we will have an id then we will create the profile and set it
     // so if the Entity is a user or organizer
-
-
-    const whereClause = ProfilePicture.user
-        ? { userId: EntityId.id }
-        : { organisationId: EntityId.id };
         
 
     // upsert function is something that if the user exists then it will update it else if the user dont exist it will create it 
         
     await prisma.profilePicture.upsert({
-        where : whereClause,
+        where : {
+            // th organisers id matches
+            organisationId : EntityId.id
+        },
         // since the user is using userId and organisationId
         create : {
-            userId : ProfilePicture.user ? EntityId : undefined,
-            organisationId : ProfilePicture.organiser ? EntityId : undefined,
+            organisationId : EntityId.id,
             picture : ProfilePicture.profile
         } ,
 
@@ -118,14 +115,14 @@ export async function CreateAndUpdateProfile(ProfilePicture) {
 
     })
 
-
+    
 
 }
 
 
 // creating an event
 export async function CreateEvent(EventAndAdvertisementInfo){
-    // EventInfo = {name , description , Location , AvailableTicket , normalprice , vipPrice }             String
+    // EventInfo = {name , description , dayOfEvent, Location , AvailableTicket , normalprice , vipPrice, date }             String
     // but an event is dependent on an organiser
     // so when 
     // EventInfo needs to be structured like the model and will have the email of the organiser
@@ -136,7 +133,8 @@ export async function CreateEvent(EventAndAdvertisementInfo){
     return await prisma.event.create({
         data : {
             name,          
-            description ,     
+            description , 
+            dayOfEvent,    
             LocationOfEvent , 
             AvailableTickets, 
             priceNormal ,      
