@@ -8,7 +8,7 @@ const eventRouter = express.Router(); //creates a mini sub-application that you 
 eventRouter.use(authenticateToken);
 
 eventRouter.get('/',getEvents);//shows all the events created so far in the homepage
-eventRouter.get('/my/:role/:id', myEvents); // gets the events the user has booked before for organize gets the events he created before 
+eventRouter.get('/my', myEvents); // gets the events the user has booked before for organize gets the events he created before 
 eventRouter.post('/create',uploadEvent.single('eventPhoto'),  createEvent); //creates events for organizer
 
 

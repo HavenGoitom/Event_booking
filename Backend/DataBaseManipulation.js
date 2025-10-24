@@ -274,10 +274,15 @@ export async function getAllEvents() {
   const events = await prisma.event.findMany(
     {
         include : {
-            advertisment : true,
+            advertisment : {
+                select : {
+                    advertisement_images : true
+                }
+            },
         }
     }
   ); 
+
   return events; 
 }
 
@@ -286,7 +291,18 @@ export async function getEventsByOrganiser(organiserId) {
     const organiserWithEvents = await prisma.organiser.findUnique({
       where: { id: organiserId },
       include: {
-        eventsOrganised: true, // this fetches all events linked to the organiser
+        eventsOrganised: {
+            include : {
+                // u go to the advertisement table
+                advertisment : {
+                    select : {
+                        advertisement_images : true
+                    }
+                }
+                
+            }
+           
+        } // this fetches all events linked to the organiser
       },
     });
 
@@ -307,9 +323,12 @@ export async function getEventsByUser(userId) {
       where: { id: userId },
       include: {
         eventsBookedAndAttended: {
-          include: {
-            organiser: true,          
-            advertisment: true,      
+          include: {        
+            advertisment: {
+                select : {
+                    advertisement_images : true
+                }
+            },      
           },
         },
       },

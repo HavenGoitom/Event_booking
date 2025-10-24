@@ -91,23 +91,27 @@ export const createEvent = async (req, res) => {
 
 export const myEvents = async (req, res) => {
   try {
-    const { role, id } = req.params; // route must be /my/:role/:id
+    const { role, email } = req.body; // route must be /my/:role/:id
 
-    if (!role || !id) {
+    if (!role || !email) {
       return res.status(400).json({ 
-        message: 'Missing required URL parameters: role and id are required' 
+        message: 'Missing required URL parameters: role and email are required' 
       });
     }
-
+    
     if (role === 'org') {
       // events the organiser created
-      const events = await getEventsByOrganiser(id)
+      const organiser = await prisma.organiser.findUnique({where: {email: email}})
+      if(!organiser) return   res.status(404).json({message: 'email is not correct'})   
+      const events = await getEventsByOrganiser(organiser.id)
       if (!events || events.length === 0) return res.status(404).json({ message: 'No events found' });
       return res.status(200).json(events);
 
     } else if (role === 'user') {
       // events the user booked 
-      const userEvents = await getEventsByUser(id)
+      const user = await prisma.user.findUnique({where: {email: email}})
+      if(!user) return   res.status(404).json({message: 'email is not correct'})   
+      const userEvents = await getEventsByUser(user.id)
       if (!userEvents || !userEvents.length === 0) return res.status(404).json({ message: 'No booked events found' });
       return res.status(200).json(userEvents);
 
