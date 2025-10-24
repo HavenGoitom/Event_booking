@@ -224,56 +224,6 @@ export async function ReturnTheTotalPriceOfTickets(UsersEventChoice) {
 // refresh token and access token 
 
 
-export async function EventTableUpdate(EventTicketsBought){
-    // whenever u use this function u have to check if the tickets are available first
-    // so EventTicketsBought {eventId , Vip : true / false , NumOfTicketsBought}
-    let {eventId , Vip , NumOfTicketsBought} = EventTicketsBought
-    let EventUpdated;
-    if (EventTicketsBought.Vip){
-        // ie if it is vip then update availableVip
-        EventUpdated = await prisma.event.update({
-            data : {
-                AvailableTicketsVip :   AvailableTicketsVip - 1
-            } ,
-            where :{
-                AND : [
-                    {id : eventId} ,
-                    {AvailableTicketsVip : {gt : 0}}
-                ]
-                // there needs to be a single vip ticket inorder for it to be selected
-            }
-        })
-
-        
-    }
-
-    else{
-        // the event is not vip so update normal
-        EventUpdated = await prisma.event.update({
-            data : {
-                AvailableTicketsNormal :   AvailableTicketsNormal- 1
-            } ,
-            where :{
-                AND : [
-                    {id : eventId} ,
-                    {AvailableTicketsNormal: {gt : 0}}
-                ]
-                // there needs to be a single vip ticket inorder for it to be selected
-            }
-    })
-    }
-
-
-    if (EventUpdated){
-        return EventUpdated
-    } 
-    
-    else{
-        console.log(`Event ${eventId} has been sold out.`);
-        return null;
-    }
-}
-
 export async function getAllEvents() {
   const events = await prisma.event.findMany(
     {
@@ -347,4 +297,78 @@ export async function getEventsByUser(userId) {
     console.error('Error fetching user events:', error);
     throw error;
   }
+}
+
+
+// i need a func to return the numen of available tickers
+
+
+export async function ReturnTheNumOfTicketsAvailable(eventId){
+    // they need to be returned the obj with vip and normal tickets
+
+    let AvailTickets = await prisma.event.findUnique({
+        where : {
+            id : eventId,
+        } , 
+        select : {
+            AvailableTicketsNormal : true,
+            AvailableTicketsVip : true,
+        }
+    })
+
+    return AvailTickets
+}
+
+
+export async function EventTableUpdate(EventTicketsBought){
+    // whenever u use this function u have to check if the tickets are available first
+    // so EventTicketsBought {eventId , Vip : true / false , NumOfTicketsBought}
+    let {eventId , Vip , NumOfTicketsBought} = EventTicketsBought
+    let EventUpdated;
+
+
+   
+    if (Vip){
+        // ie if it is vip then update availableVip
+        EventUpdated = await prisma.event.update({
+            data : {
+                AvailableTicketsVip :   AvailableTicketsVip - NumOfTicketsBought
+            } ,
+            where :{
+                AND : [
+                    {id : eventId} ,
+                    {AvailableTicketsVip : {gt : 0}}
+                ]
+                // there needs to be a single vip ticket inorder for it to be selected
+            }
+        })
+
+        
+    }
+
+    else{
+        // the event is not vip so update normal
+        EventUpdated = await prisma.event.update({
+            data : {
+                AvailableTicketsNormal :   AvailableTicketsNormal- NumOfTicketsBought
+            } ,
+            where :{
+                AND : [
+                    {id : eventId} ,
+                    {AvailableTicketsNormal: {gt : 0}}
+                ]
+                // there needs to be a single vip ticket inorder for it to be selected
+            }
+    })
+    }
+
+
+    if (EventUpdated){
+        return EventUpdated
+    } 
+    
+    else{
+        console.log(`Event ${eventId} has been sold out.`);
+        return null;
+    }
 }
