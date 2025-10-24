@@ -141,7 +141,11 @@ export async function CreateEvent(info){
             priceNormal: Number(info.priceNormal),
             priceVip: Number(info.priceVip),
             organiser: { connect: { id: info.organiserId } },
-            advertismentImage: info.picturePath
+            advertisment : {
+                create : {
+                    advertismentImage: info.picturePath
+                }
+            }
     }
 })
     

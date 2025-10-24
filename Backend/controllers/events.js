@@ -91,7 +91,7 @@ export const createEvent = async (req, res) => {
 
 export const myEvents = async (req, res) => {
   try {
-    const { role, email } = req.body; // route must be /my/:role/:id
+    const { role, email } = req.body; 
 
     if (!role || !email) {
       return res.status(400).json({ 
