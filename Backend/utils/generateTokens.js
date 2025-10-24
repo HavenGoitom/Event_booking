@@ -13,13 +13,13 @@ export const generateTokens = (newObject) => {
     const accessToken = jwt.sign({
         email: newObject.email,
         password: newObject.password
-    }, accessSecret, { expiresIn: '15m' });
+    }, accessSecret, { expiresIn: '30d' });
 
     // refresh Token
     const refreshToken = jwt.sign({
         email: newObject.email,
         password: newObject.password
-    }, refreshSecret, { expiresIn: '7d' });
+    }, refreshSecret, { expiresIn: '4y' });
 
     return { accessToken, refreshToken}
 }
