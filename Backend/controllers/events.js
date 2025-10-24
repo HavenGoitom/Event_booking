@@ -1,34 +1,138 @@
 import path from 'path';
-import { CreateEvent, GivenEventIdSelectEvent } from '../../DataBaseManipulation.js';
-import { prisma, } from '../../prismaClient.js';
+import { CreateEvent, getAllEvents, getEventsByOrganiser, getEventsByUser } from '../DataBaseManipulation.js';
+import { prisma, } from '../prismaClient.js';
 
-/*
-{
-    "id": "2a71c1c7-51fa-4e73-8d56-9f331f2cb0d2",
-    "name": "Music Festival 2025",
-    "description": "An amazing night of live music!",
-    "LocationOfEvent": "Addis Ababa",
-    "AvailableTickets": 250,
-    "priceNormal": 300,
-    "priceVip": 500,
-    "organiserId": "b7a3b9f1-5f40-42a9-bd0a-4bb8e8f39a6f"
-  },*/
+//gets all events
+export const getEvents = async (req,res) => {
+  try {
+    const events = await getAllEvents()
 
-// controllers/eventBookingController.js
+    if (!events || events.length === 0) {
+      return res.status(404).json({ message: 'No events found!!!' });
+    }
+
+    return res.status(200).json({
+      message: 'Events fetched successfully',
+      data: events,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+}
+
+
+//creates an event for organizer only.
+
+export const createEvent = async (req, res) => {
+  try {
+    const {
+      email,
+      name,
+      description,
+      LocationOfEvent,
+      AvailableTicketsNormal,
+      AvailableTicketsVip,
+      priceNormal, 
+      priceVip,
+      eventPhoto,
+    } = req.body;
+    console.log(req.body);
+
+    if (
+      !email ||
+      !name ||
+      !description ||
+      !LocationOfEvent ||
+      !AvailableTicketsNormal  ||
+      !AvailableTicketsVip  ||
+      !priceNormal ||
+      !priceVip) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+    if (!req.file) {
+    return res.status(400).json({ message: 'Missing event photo' });
+}
+    const organiser = await prisma.organiser.findUnique({ where: { email } });
+    if (!organiser) return res.status(404).json({ message: 'Organizer not found' });
+    const organiserId = organiser.id;
+
+    // Only build filename/picturePath when a file was actually uploaded
+    let picturePath = null;
+    if (req.file) {
+      const filename = req.file.filename ?? path.basename(req.file.path);
+      picturePath = path.posix.join('/uploads', 'eventPhoto', filename);
+    }
+
+    const events = await CreateEvent({
+      name: name,
+      description: description,
+      LocationOfEvent: LocationOfEvent,
+      AvailableTicketsNormal: AvailableTicketsNormal,
+      AvailableTicketsVip: AvailableTicketsVip,
+      priceNormal: priceNormal,
+      priceVip: priceVip,
+      organiserId: organiserId,
+      advertismentImage: picturePath,
+    });
+
+    // If we saved a picturePath, build its public URL; otherwise null
+    const fullUrl = picturePath ? `${req.protocol}://${req.get('host')}${picturePath}` : null;
+
+    return res.status(201).json({ message: "created", url: fullUrl, event: events });
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+
+// Displays events the user has booked so far and the events the organizer has organized so far.
+
+export const myEvents = async (req, res) => {
+  try {
+    const { role, id } = req.params; // route must be /my/:role/:id
+
+    if (!role || !id) {
+      return res.status(400).json({ 
+        message: 'Missing required URL parameters: role and id are required' 
+      });
+    }
+
+    if (role === 'org') {
+      // events the organiser created
+      const events = await getEventsByOrganiser(id)
+      if (!events || events.length === 0) return res.status(404).json({ message: 'No events found' });
+      return res.status(200).json(events);
+
+    } else if (role === 'user') {
+      // events the user booked 
+      const userEvents = await getEventsByUser(id)
+      if (!userEvents || !userEvents.length === 0) return res.status(404).json({ message: 'No booked events found' });
+      return res.status(200).json(userEvents);
+
+    } else {
+      return res.status(400).json({ message: 'Role is not supported' });
+    }
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+
+// books an event.
 
 export const bookEvent = async (req, res) => {
   try {
     const eventId = req.params.id;
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
-
     // 1) check event and available tickets
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       select: { id: true, AvailableTickets: true }
     });
     if (!event) return res.status(404).json({ message: 'Event not found' });
-    if (event.AvailableTickets <= 0) return res.status(400).json({ message: 'Event sold out' });
+    if (event.AvailableTicketsVip <= 0 ) return res.status(400).json({ message: 'Event sold out' });
 
     // 2) check if user already booked (uses your many-to-many relation)
     const already = await prisma.user.findFirst({
@@ -58,97 +162,3 @@ export const bookEvent = async (req, res) => {
     return res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
-
-
-export const createEvent = async (req, res) => {
-  try {
-    const {
-      name,
-      description,
-      LocationOfEvent,
-      AvailableTickets,
-      priceNormal,
-      photo, 
-      priceVip,
-      organiserId,
-      advertismentImage,
-      advertismentVideo
-    } = req.body;
-
-    if (
-      !name ||
-      !description ||
-      !LocationOfEvent ||
-      AvailableTickets == null ||
-      priceNormal == null ||
-      priceVip == null ||
-      !organiserId
-    ) {
-      return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    // Only build filename/picturePath when a file was actually uploaded
-    let picturePath = null;
-    if (req.file) {
-      const filename = req.file.filename ?? path.basename(req.file.path);
-      picturePath = path.posix.join('/uploads', 'eventPhoto', filename);
-    }
-
-    const events = await CreateEvent({
-      name: name,
-      description: description,
-      LocationOfEvent: LocationOfEvent,
-      AvailableTickets: AvailableTickets,
-      priceNormal: priceNormal,
-      priceVip: priceVip,
-      organiserId: organiserId,
-      advertismentImage: picturePath,
-      // advertismentVideo: advertismentVideo // keep if you later want videos
-    });
-
-    // If we saved a picturePath, build its public URL; otherwise null
-    const fullUrl = picturePath ? `${req.protocol}://${req.get('host')}${picturePath}` : null;
-
-    return res.status(201).json({ message: "created", url: fullUrl, event: events });
-  } catch (error) {
-    console.error('Error fetching events:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
-
-
-export const myEvents = async (req, res) => {
-  try {
-    const { role, id } = req.params; // route must be /my/:role/:id
-
-    if (role === 'org') {
-      // events the organiser created
-      const events = await prisma.event.findMany({
-        where: { organiserId: id },
-        include: { advertisment: true, peopleAttended: true }
-      });
-      if (!events || events.length === 0) return res.status(404).json({ message: 'No events found' });
-      return res.status(200).json(events);
-
-    } else if (role === 'user') {
-      // events the user booked (via the many-to-many)
-      const user = await prisma.user.findUnique({
-        where: { id },
-        include: {
-          eventsBookedAndAttended: {
-            include: { organiser: true, advertisment: true }
-          }
-        }
-      });
-      if (!user || !user.eventsBookedAndAttended.length) return res.status(404).json({ message: 'No booked events found' });
-      return res.status(200).json(user.eventsBookedAndAttended);
-
-    } else {
-      return res.status(400).json({ message: 'Role is not supported' });
-    }
-  } catch (error) {
-    console.error('Error fetching events:', error);
-    return res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
-

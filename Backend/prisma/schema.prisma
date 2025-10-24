@@ -49,7 +49,6 @@ model Event {
   id                     String                 @id @default(uuid())
   name                   String
   description            String
-  dayOfEvent             DateTime
   LocationOfEvent        String
   AvailableTicketsNormal Int
   AvailableTicketsVip    Int
@@ -67,7 +66,6 @@ model Event {
 model AdvertisementForEvent {
   id                   String @id @default(uuid())
   advertisement_images String
-  advertisement_videos String
   event                Event  @relation(fields: [eventId], references: [id])
   eventId              String @unique
   // bc it is a one to one relation

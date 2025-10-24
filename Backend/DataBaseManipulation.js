@@ -121,7 +121,7 @@ export async function CreateAndUpdateProfile(ProfilePicture) {
 
 
 // creating an event
-export async function CreateEvent(EventAndAdvertisementInfo){
+export async function CreateEvent(info){
     // EventInfo = {name , description , dayOfEvent, Location , AvailableTicket , normalprice , vipPrice, date }             String
     // but an event is dependent on an organiser
     // so when 
@@ -132,27 +132,16 @@ export async function CreateEvent(EventAndAdvertisementInfo){
     // since every advert is linked to an event use nested create
     return await prisma.event.create({
         data : {
-            name,          
-            description , 
-            dayOfEvent,    
-            LocationOfEvent , 
-            AvailableTickets, 
-            priceNormal ,      
-            priceVip  ,    
-            organiser ,
-            advertisment : {
-                create : {
-                    advertisement_images: EventAndAdvertisementInfo.advertismentImage,
-                    advertisement_videos : EventAndAdvertisementInfo.advertismentVideo
-                }
-            },
-            organiser : {
-                connect : {
-                    // we use connect here bc the organiser must first exist to make an event post
-                    id : EventAndAdvertisementInfo.organiserId
-                    // this will be derived using the email and id matcher function
-                }
-            }
+            name: info.name,
+            description: info.description,
+            dayOfEvent: info.dayOfEvent,
+            LocationOfEvent: info.LocationOfEvent,
+            AvailableTicketsNormal: Number(info.AvailableTicketsNormal),
+            AvailableTicketsVip: Number(info.AvailableTicketsVip),
+            priceNormal: Number(info.priceNormal),
+            priceVip: Number(info.priceVip),
+            organiser: { connect: { id: info.organiserId } },
+            advertismentImage: info.picturePath
     }
 })
     
@@ -281,3 +270,52 @@ export async function EventTableUpdate(EventTicketsBought){
     }
 }
 
+export async function getAllEvents() {
+  const events = await prisma.event.findMany(); 
+  return events; 
+}
+
+export async function getEventsByOrganiser(organiserId) {
+  try {
+    const organiserWithEvents = await prisma.organiser.findUnique({
+      where: { id: organiserId },
+      include: {
+        eventsOrganised: true, // this fetches all events linked to the organiser
+      },
+    });
+
+    if (!organiserWithEvents) {
+      throw new Error('Organiser not found');
+    }
+
+    return organiserWithEvents.eventsOrganised;
+  } catch (error) {
+    console.error('Error fetching organiser events:', error);
+    throw error;
+  }
+}
+
+export async function getEventsByUser(userId) {
+  try {
+    const userWithEvents = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        eventsBookedAndAttended: {
+          include: {
+            organiser: true,          
+            advertisment: true,      
+          },
+        },
+      },
+    });
+
+    if (!userWithEvents) {
+      throw new Error('User not found');
+    }
+
+    return userWithEvents.eventsBookedAndAttended;
+  } catch (error) {
+    console.error('Error fetching user events:', error);
+    throw error;
+  }
+}
