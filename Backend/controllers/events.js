@@ -73,11 +73,7 @@ export const createEvent = async (req, res) => {
       priceNormal: priceNormal,
       priceVip: priceVip,
       organiserId: organiserId,
-      advertisment : {
-          create : {
-                advertismentImage: info.picturePath
-            }
-        }
+      picturePath 
     });
 
     // If we saved a picturePath, build its public URL; otherwise null
