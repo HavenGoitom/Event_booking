@@ -271,7 +271,13 @@ export async function EventTableUpdate(EventTicketsBought){
 }
 
 export async function getAllEvents() {
-  const events = await prisma.event.findMany(); 
+  const events = await prisma.event.findMany(
+    {
+        include : {
+            advertisment : true,
+        }
+    }
+  ); 
   return events; 
 }
 
