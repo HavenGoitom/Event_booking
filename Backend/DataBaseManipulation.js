@@ -143,7 +143,7 @@ export async function CreateEvent(info){
             organiser: { connect: { id: info.organiserId } },
             advertisment : {
                 create : {
-                    advertismentImage: info.picturePath
+                    advertisement_images : info.picturePath
                 }
             }
     }
