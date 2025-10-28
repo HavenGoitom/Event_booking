@@ -13,6 +13,7 @@ function createUploader(subfolder) {
 
   // create directory if not exist
   if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+  //Why is it recursive
 
   // define where and how files will be stored
   const storage = multer.diskStorage({
@@ -35,4 +36,15 @@ function createUploader(subfolder) {
 
 // ✅ Create two uploaders
 export const uploadProfile = createUploader('profilePicture');
-export const uploadEvent = createUploader('eventsPhoto');
+export const uploadEvent = createUploader('eventPhoto');
+/*{
+  fieldname: 'profilePicture',      // name of the form field
+  originalname: 'photo.png',        // original file name from the user's computer
+  encoding: '7bit',
+  mimetype: 'image/png',            // MIME type
+  destination: 'uploads/profilePicture/', // folder where multer stored it
+  filename: '1697830192871-photo.png',    // new generated filename (if you defined one)
+  path: 'uploads/profilePicture/1697830192871-photo.png', // full path on your server
+  size: 34928                        // size in bytes
+}
+ */

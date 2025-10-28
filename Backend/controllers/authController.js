@@ -1,8 +1,12 @@
-import {CreateUser, Createorganiser} from '../../DataBaseManipulation.js';
-import { prisma } from '../../prismaClient.js';
+import {CreateUser, Createorganiser} from '../DataBaseManipulation.js';
+import { prisma } from '../prismaClient.js';
 import { generateTokens } from '../utils/generateTokens.js';
 import bcrypt from 'bcrypt';
 
+//to use prisma
+
+import dotenv from 'dotenv';
+dotenv.config();
 
 export const login = async (req,res) => {
   try{
@@ -59,10 +63,10 @@ export const signup = async(req,res)=> {
       if (!role) {
         return res.status(400).json({ message: 'Role is required' });
       }
-      if (role == 'org'){
-          const {name, email, password, bankAccount, bank, description} = req.body
+      if (role === 'org'){
+          const {name, email, password, BankAccount, Bank, DescriptionAboutCompany, merchantId} = req.body
 
-        if (!name || !email || !password  || !bankAccount || !bank || !description) 
+        if (!name || !email || !password  || !BankAccount || !Bank || !DescriptionAboutCompany || !merchantId) 
             return res.status(400).json({ message: 'Missing fields' });
 
         const existingOrg = await prisma.organiser.findUnique({where: {email: email}})
@@ -75,17 +79,18 @@ export const signup = async(req,res)=> {
         const newOrg = await Createorganiser({
             name: name,
             email: email,
+            merchantId: merchantId,
             password: hashedPassword,
-            bankAccount: bankAccount,
-            bank:bank,
-            description: description
+            BankAccount: BankAccount,
+            Bank:Bank,
+            DescriptionAboutCompany: DescriptionAboutCompany
         })
         const tokens = generateTokens(newOrg);
         return res.status(201).json({ message: 'Organizer is registered', accessToken: tokens.accessToken,refreshToken: tokens.refreshToken});
 
     }else if(role == 'user'){
-      const {name, email, password, phoneNumber} = req.body;
-      if (!name || !email || !password || !phoneNumber) {
+      const {name, email, password, phone} = req.body;
+      if (!name || !email || !password || !phone) {
         return res.status(400).json({ message: 'Missing fields' });
       }
 
@@ -93,7 +98,7 @@ export const signup = async(req,res)=> {
           where: {
               OR: [
                   { email: email },
-                  { phoneNumber: phoneNumber }
+                  { phone: phone }
               ]
           }
       })
@@ -106,7 +111,7 @@ export const signup = async(req,res)=> {
           name: name,
           email: email,
           password: hashedPassword,
-          phoneNumber: phoneNumber
+          phone: phone
       })
       const tokens = generateTokens(newUser);
         return res.status(201).json({ message: 'User registered', accessToken: tokens.accessToken,refreshToken: tokens.refreshToken});
@@ -114,6 +119,7 @@ export const signup = async(req,res)=> {
       return res.status(400).json({ message: 'Invalid role' });
     } 
   } catch (err) {
+    console.error(err);
       return res.status(500).json({ message: 'Internal server error' });
   }
 };
