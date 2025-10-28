@@ -44,9 +44,9 @@ export const createAndUpdateProfile = async (req, res) => {
 
 export const getProfile = async (req,res)=>{
     try {
-        const { id } = req.params; // get id from route params
-
-        let profile = await prisma.organiser.findUnique({ where: { id: id } , select: {
+        const { email } = req.body; // get email from route params
+      if(!email){return res.status(402).json({ message: 'Email is required' });}
+        let profile = await prisma.organiser.findUnique({ where: { email: email } , select: {
            name: true,               
            profilePicture: true,      
            BankAccount : true,           
@@ -54,7 +54,6 @@ export const getProfile = async (req,res)=>{
            email:true,                   
            DescriptionAboutCompany:true, 
         } });
-        console.log(profile);
 
         if (!profile) return res.status(404).json({ message: 'Profile not found' });
         return res.status(200).json(profile);
