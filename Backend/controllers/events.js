@@ -25,6 +25,7 @@ export const getEvents = async (req,res) => {
 
 //creates an event for organizer only.
 
+// controllers/events.js (only the createEvent function updated)
 export const createEvent = async (req, res) => {
   try {
     const {
@@ -34,58 +35,64 @@ export const createEvent = async (req, res) => {
       LocationOfEvent,
       AvailableTicketsNormal,
       AvailableTicketsVip,
-      priceNormal, 
+      priceNormal,
       priceVip,
-      eventPhoto,
+      eventPhoto, // not used directly because we get file from req.file
     } = req.body;
-    console.log(req.body);
 
     if (
       !email ||
       !name ||
       !description ||
       !LocationOfEvent ||
-      !AvailableTicketsNormal  ||
-      !AvailableTicketsVip  ||
+      !AvailableTicketsNormal ||
+      !AvailableTicketsVip ||
       !priceNormal ||
-      !priceVip) {
+      !priceVip
+    ) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
+
+    // file must be present (uploadEvent.single('eventPhoto') should have run)
     if (!req.file) {
-    return res.status(400).json({ message: 'Missing event photo' });
-}
+      return res.status(400).json({ message: 'Missing event photo' });
+    }
+
+    // find organiser
     const organiser = await prisma.organiser.findUnique({ where: { email } });
     if (!organiser) return res.status(404).json({ message: 'Organizer not found' });
     const organiserId = organiser.id;
 
-    // Only build filename/picturePath when a file was actually uploaded
-    let picturePath = null;
-    if (req.file) {
-      const filename = req.file.filename ?? path.basename(req.file.path);
-      picturePath = path.posix.join('/uploads', 'eventPhoto', filename);
-    }
+    // Build the stored path and the full public URL (absolute). Do this AFTER filename exists.
+    const filename = req.file.filename ?? path.basename(req.file.path);
+    // relative path that matches your express.static mount
+    const relativePath = path.posix.join('/uploads', 'eventPhoto', filename);
+    // absolute public URL (what the frontend can fetch)
+    const fullUrl = `${req.protocol}://${req.get('host')}${relativePath}`;
 
+    // Save the full URL into the DB (Option B)
     const events = await CreateEvent({
-      name: name,
-      description: description,
-      LocationOfEvent: LocationOfEvent,
-      AvailableTicketsNormal: AvailableTicketsNormal,
-      AvailableTicketsVip: AvailableTicketsVip,
-      priceNormal: priceNormal,
-      priceVip: priceVip,
-      organiserId: organiserId,
-      picturePath
+      name,
+      description,
+      LocationOfEvent,
+      AvailableTicketsNormal,
+      AvailableTicketsVip,
+      priceNormal,
+      priceVip,
+      organiserId,
+      // store the public URL so GET requests don't need to transform it
+      picturePath: fullUrl,
+      // If your DB schema expects an advertisement object instead, change accordingly:
+      // advertisment: { advertisement_images: fullUrl }
     });
 
-    // If we saved a picturePath, build its public URL; otherwise null
-    const fullUrl = picturePath ? `${req.protocol}://${req.get('host')}${picturePath}` : null;
-
-    return res.status(201).json({ message: "created", url: fullUrl, event: events });
+    return res.status(201).json({ message: 'created', url: fullUrl, event: events });
   } catch (error) {
-    console.error('Error fetching events:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error creating event:', error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 
 
 // Displays events the user has booked so far and the events the organizer has organized so far.
