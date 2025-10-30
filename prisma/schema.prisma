@@ -61,6 +61,8 @@ model Event {
   peopleAttended         User[]                 @relation(name: "eventPeople")
   // an event can have a single record in AdvertismentForEventTable
   advertisment           AdvertisementForEvent?
+
+  transaction Transaction[]
 }
 
 model AdvertisementForEvent {
@@ -83,3 +85,14 @@ model profilePicture {
 // the organiser needs to be optional like one of them needs to be null
 
 // picture will be a link to the cloud storage
+
+model Transaction {
+  // id will be created when given
+  id                    String @id @default(uuid())
+  status                String @default("pending")
+  transactionId         String @unique
+  eventId               String
+  event                 Event  @relation(fields: [eventId], references: [id])
+  ticketType            String
+  numberOfTicketsBought Int
+}

@@ -80,6 +80,22 @@ export async function GivenEmailSelectTheUser(Info){
 
 }
 
+export async function GivenEventIdReturnMerchantId(eventId){
+    // the eventId will be given and u will return the merchant id
+
+    let organiserIdObj = await prisma.event.findUnique({
+        where :{
+            id : eventId
+        },
+        select : {
+            organiserId : true
+        }
+    })
+
+    return organiserIdObj?.organiserId ?  organiserIdObj.organiserId : 'Couldnt find the event sorry'
+    
+}
+
 //  by id identify mareg events and organisers 
 
 // updating a profile
@@ -133,6 +149,7 @@ export async function CreateEvent(EventAndAdvertisementInfo){
     
     // EventInfo['organiserId'] = organiserId; since many to many we dont need this
     // since every advert is linked to an event use nested create
+    const { name, description, LocationOfEvent, AvailableTickets, priceNormal, priceVip, organiserId, advertismentImage, advertismentVideo } = EventAndAdvertisementInfo
     return await prisma.event.create({
         data : {
             name,          
@@ -145,7 +162,7 @@ export async function CreateEvent(EventAndAdvertisementInfo){
             advertisment : {
                 create : {
                     advertisement_images: EventAndAdvertisementInfo.advertismentImage,
-                    advertisement_videos : EventAndAdvertisementInfo.advertismentVideo
+                    // advertisement_videos : EventAndAdvertisementInfo.advertismentVideo
                 }
             },
             organiser : {
@@ -159,6 +176,44 @@ export async function CreateEvent(EventAndAdvertisementInfo){
 })
     
 
+}
+
+
+export async function GivenTransactIdReturnEventInfo(transactionId){
+
+}
+
+
+export async function GivenEventIdUpdateTicketNum(event_Id , numberOfTickets , isTicketVip) {
+    // then select the event and update it
+
+    if (isTicketVip){
+        await prisma.event.update({
+            where : {
+                id : event_Id,
+            },
+            data : {
+                AvailableTicketsVip : {
+                    decrement : numberOfTickets
+                }
+            }
+        })
+    }
+
+    else{
+        // if it is normal
+        await prisma.event.update({
+            where : {
+                eventId : event_Id,
+            },
+            data : {
+                AvailableTicketsNormal : {
+                    decrement : numberOfTickets
+                }
+            }
+        })
+    }
+ 
 }
 
 
@@ -207,20 +262,21 @@ export async function GivenIdSelectOrganiser(OrganiserId) {
 }
 
 export async function ReturnTheTotalPriceOfTickets(UsersEventChoice) {
-    // UsersEventChoice will have = { EventId , TicketType , Quantity }
+    // UsersEventChoice will have = { EventId , TicketType = {vip : true} , Quantity }
     let { EventId , TicketType , Quantity } = UsersEventChoice
-    let priceSelected =  TicketType.vip ? priceVip : priceNormal
     let EventPrice = await prisma.event.findUnique({
         where : {
             id : EventId
         } ,
         select : {
-            [priceSelected] : true
+            priceNormal : true,
+            priceVip : true
+
         }
     })
 
     let numOfTicket = TicketQuantity || 1
-    let price = EventPrice.priceNormal || EventPrice.priceVip
+    let price =  TicketType.vip ? EventPrice.priceVip : EventPrice.priceNormal
     // bc it will only have either one
     // and users can buy both vip // both normal not combination
 
@@ -233,16 +289,40 @@ export async function ReturnTheTotalPriceOfTickets(UsersEventChoice) {
 // refresh token and access token 
 
 
+
+// i need a func to return the numen of available tickers
+
+
+export async function ReturnTheNumOfTicketsAvailable(eventId){
+    // they need to be returned the obj with vip and normal tickets
+
+    let AvailTickets = await prisma.event.findUnique({
+        where : {
+            id : eventId,
+        } , 
+        select : {
+            AvailableTicketsNormal : true,
+            AvailableTicketsVip : true,
+        }
+    })
+
+    return AvailTickets
+}
+
+
 export async function EventTableUpdate(EventTicketsBought){
     // whenever u use this function u have to check if the tickets are available first
     // so EventTicketsBought {eventId , Vip : true / false , NumOfTicketsBought}
     let {eventId , Vip , NumOfTicketsBought} = EventTicketsBought
     let EventUpdated;
-    if (EventTicketsBought.Vip){
+
+
+   
+    if (Vip){
         // ie if it is vip then update availableVip
         EventUpdated = await prisma.event.update({
             data : {
-                AvailableTicketsVip :   AvailableTicketsVip - 1
+                AvailableTicketsVip :   { decrement: NumOfTicketsBought }
             } ,
             where :{
                 AND : [
@@ -260,7 +340,7 @@ export async function EventTableUpdate(EventTicketsBought){
         // the event is not vip so update normal
         EventUpdated = await prisma.event.update({
             data : {
-                AvailableTicketsNormal :   AvailableTicketsNormal- 1
+                AvailableTicketsNormal :   { decrement: NumOfTicketsBought }
             } ,
             where :{
                 AND : [
@@ -281,5 +361,40 @@ export async function EventTableUpdate(EventTicketsBought){
         console.log(`Event ${eventId} has been sold out.`);
         return null;
     }
+}
+
+
+export async function CreateTransaction(TransactionInfo){
+    let {eventId , ticketType , numberOfTicketsBought , transactionId } = TransactionInfo;
+
+    await prisma.transaction.create({
+        data : {
+            event : {
+                connect : {
+                    id : eventId // connect the transaction to the event
+                }
+            },
+            ticketType,
+            numberOfTicketsBought,
+            transactionId
+        }
+    })
+}
+
+
+export async function GivenTransactionIdReturnEvent(transactionId) {
+    let obj = await prisma.transaction.findUnique({
+        where : {
+            transactionId,  
+        },
+        select : {
+            ticketType : true ,
+            eventId : true,
+            numberOfTicketsBought : true
+        }
+    })
+
+    return obj
+    
 }
 
