@@ -3,13 +3,14 @@ import moment from 'moment';
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
-import { GivenEventIdReturnMerchantId , ReturnTheTotalPriceOfTickets , GivenEmailSelectTheUser , GivenEventIdSelectAccountAndBankFromOrganiser ,  EventTableUpdate , ReturnTheNumOfTicketsAvailable} from 'DataBaseManipulation.js'
+import { GivenEventIdUpdateTicketNum , GivenTransactionIdReturnEvent , CreateTransaction,
+  GivenEventIdReturnMerchantId , ReturnTheTotalPriceOfTickets , GivenEmailSelectTheUser ,
+   GivenEventIdSelectAccountAndBankFromOrganiser ,  EventTableUpdate , 
+   ReturnTheNumOfTicketsAvailable} from './DataBaseManipulation.js'
 // 256-bit nonce, base64url without padding  -> this is a nonce generator
 import crypto from 'crypto'; // used for nonceGeneration to prevent hackers replay man attacks
 dotenv.config();
 let app = express();
-import {GivenEventIdUpdateTicketNum , GivenTransactionIdReturnEvent , CreateTransaction} from './DataBaseManipulation.js'
-
 
 
 // bc we will update the tables status
@@ -45,7 +46,7 @@ function generateTransactionId(userId , eventId , amount){
   let MomentObj = moment(new Date());
   // having moment makes it easier to work with dates
   // so lets format the date in a proper way to make it fit YYYY-MM-DD HH -> so the user wont do a transaction in the same hr
-  let TimeofTransaction = MomentObj.format('YYYY-MM-DD HH -mm');
+  let TimeofTransaction = MomentObj.format('YYYY-MM-DD_HH-mm');
   // this will return the day and hr + min
 
   let transId = `TXN_${TimeofTransaction}_${userId}_${eventId}_${amount}`

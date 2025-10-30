@@ -1,59 +1,35 @@
 import { verifyArifpaySignature } from '../utils/verifySignature.js';
-import { prisma } from "../prismaClient.js";
-import { decrementTicketsAtomic, findOrCreatePayment } from '../services/eventService.js';
-import dotenv from 'dotenv';
-dotenv.config();
+import { prisma } from '../prismaClient.js';
+import { findPaymentBySession, createTransaction } from '../services/eventService.js';
 
 const WEBHOOK_SECRET = process.env.ARIFPAY_WEBHOOK_SECRET;
 
 export async function arifpayWebhookHandler(req, res) {
   try {
-    const rawBodyBuffer = req.body; // will be Buffer because we used express.raw()
-    const signature = req.headers['x-arifpay-signature'];
+    const rawBodyBuffer = req.body;
+    const signature = req.headers['x-arifpay-signature'] || req.headers['x-signature'];
+    if (!verifyArifpaySignature(rawBodyBuffer, signature, WEBHOOK_SECRET)) return res.status(400).send('Invalid signature');
 
-    if (!verifyArifpaySignature(rawBodyBuffer, signature, WEBHOOK_SECRET)) {
-      console.error('Invalid webhook signature');
-      return res.status(400).send('Invalid signature');
-    }
-
-    const payload = JSON.parse(rawBodyBuffer.toString());
-    const { sessionId, status, eventId, ticketType, quantity, userEmail, amount } = payload;
-
+    const payload = JSON.parse(rawBodyBuffer.toString('utf8'));
+    const { sessionId, status, eventId, ticketType, quantity, userEmail, amount, transactionId } = payload;
     if (!sessionId || !status) return res.status(400).send('Invalid payload');
 
-    // Idempotency: if payment already processed, return 200
-    const existing = await prisma.payment.findUnique({ where: { sessionId } });
-    if (existing) {
-      console.log(`Duplicate webhook for ${sessionId} - ignoring`);
-      return res.status(200).send('Already processed');
-    }
+    const existing = await findPaymentBySession(sessionId);
+    if (existing && existing.status === 'PAID') return res.status(200).send('Already processed');
 
-    if (status === 'SUCCESS') {
-      // Create payment record and decrement tickets atomically
+    if (status.toUpperCase() === 'SUCCESS' || status.toUpperCase() === 'PAID') {
       await prisma.$transaction(async (tx) => {
-        await tx.payment.create({
-          data: {
-            sessionId,
-            status,
-            email: userEmail,
-            eventId,
-            amount,
-            createdAt: new Date()
-          }
-        });
+        if (!existing) await tx.payment.create({ data: { sessionId, transactionId, status: 'PAID', email: userEmail, eventId, ticketType, quantity, amount, createdAt: new Date() } });
+        else await tx.payment.update({ where: { sessionId }, data: { status: 'PAID', transactionId: transactionId || existing.transactionId } });
 
-        const decrementField = ticketType === 'vip'
-          ? { AvailableTicketsVip: { decrement: quantity } }
-          : { AvailableTicketsNormal: { decrement: quantity } };
-
-        await tx.event.update({
-          where: { id: eventId },
-          data: decrementField
-        });
+        const decrementField = ticketType === 'vip' ? { AvailableTicketsVip: { decrement: quantity } } : { AvailableTicketsNormal: { decrement: quantity } };
+        await tx.event.update({ where: { id: eventId }, data: decrementField });
       });
-
-      console.log(`Processed payment ${sessionId}`);
+      return res.status(200).send('Webhook processed');
     }
+
+    if (!existing) await createTransaction({ transactionId, sessionId, eventId, ticketType, quantity, amount, email: userEmail, status: status.toUpperCase() });
+    else await prisma.payment.update({ where: { sessionId }, data: { status: status.toUpperCase() } });
 
     return res.status(200).send('Webhook received');
   } catch (err) {

@@ -1,4 +1,5 @@
 import{PrismaClient}  from '@prisma/client';
+
 // let = prismaModule;
  
 // so generated/prisma uses commonjs module which has got a different way of exporting
@@ -80,6 +81,22 @@ export async function GivenEmailSelectTheUser(Info){
 
 }
 
+export async function GivenEventIdReturnMerchantId(eventId){
+    // the eventId will be given and u will return the merchant id
+
+    let organiserIdObj = await prisma.event.findUnique({
+        where :{
+            id : eventId
+        },
+        select : {
+            organiserId : true
+        }
+    })
+
+    return organiserIdObj?.organiserId ?  organiserIdObj.organiserId : 'Couldnt find the event sorry'
+    
+}
+
 //  by id identify mareg events and organisers 
 
 // updating a profile
@@ -89,23 +106,26 @@ export async function GivenEmailSelectTheUser(Info){
 // so given an email u need to query both the user and the organizer
 // to avoid that 2 times querying everything u send from the front end needs to have 
 export async function CreateAndUpdateProfile(ProfilePicture) {
-    // ProfilePicture = { organiser : true, Email : email , profile : url_of_the_profile}
+    // ProfilePicture = {user : true , organiser : false , Email : email , profile : url_of_the_profile}
          
     let EntityId = await GivenEmailSelectTheUser(ProfilePicture);
     // then we will have an id then we will create the profile and set it
     // so if the Entity is a user or organizer
+
+
+    const whereClause = ProfilePicture.user
+        ? { userId: EntityId.id }
+        : { organisationId: EntityId.id };
         
 
     // upsert function is something that if the user exists then it will update it else if the user dont exist it will create it 
         
     await prisma.profilePicture.upsert({
-        where : {
-            // th organisers id matches
-            organisationId : EntityId.id
-        },
+        where : whereClause,
         // since the user is using userId and organisationId
         create : {
-            organisationId : EntityId.id,
+            userId : ProfilePicture.user ? EntityId.id : undefined,
+            organisationId : ProfilePicture.organiser ? EntityId : undefined,
             picture : ProfilePicture.profile
         } ,
 
@@ -115,14 +135,14 @@ export async function CreateAndUpdateProfile(ProfilePicture) {
 
     })
 
-    
+
 
 }
 
 
 // creating an event
-export async function CreateEvent(info){
-    // EventInfo = {name , description , dayOfEvent, Location , AvailableTicket , normalprice , vipPrice, date }             String
+export async function CreateEvent(EventAndAdvertisementInfo){
+    // EventInfo = {name , description , Location , AvailableTicket , normalprice , vipPrice }             String
     // but an event is dependent on an organiser
     // so when 
     // EventInfo needs to be structured like the model and will have the email of the organiser
@@ -130,26 +150,71 @@ export async function CreateEvent(info){
     
     // EventInfo['organiserId'] = organiserId; since many to many we dont need this
     // since every advert is linked to an event use nested create
+    const { name, description, LocationOfEvent, AvailableTickets, priceNormal, priceVip, organiserId, advertismentImage, advertismentVideo } = EventAndAdvertisementInfo
     return await prisma.event.create({
         data : {
-            name: info.name,
-            description: info.description,
-            dayOfEvent: info.dayOfEvent,
-            LocationOfEvent: info.LocationOfEvent,
-            AvailableTicketsNormal: Number(info.AvailableTicketsNormal),
-            AvailableTicketsVip: Number(info.AvailableTicketsVip),
-            priceNormal: Number(info.priceNormal),
-            priceVip: Number(info.priceVip),
-            organiser: { connect: { id: info.organiserId } },
+            name,          
+            description ,     
+            LocationOfEvent , 
+            AvailableTicketsNormal : AvailableTickets.AvailableTicketsNormal , 
+            AvailableTicketsVip : AvailableTickets.AvailableTicketsVip,
+            priceNormal ,      
+            priceVip  ,    
             advertisment : {
                 create : {
-                    advertisement_images : info.picturePath
+                    advertisement_images: EventAndAdvertisementInfo.advertismentImage,
+                    // advertisement_videos : EventAndAdvertisementInfo.advertismentVideo
+                }
+            },
+            organiser : {
+                connect : {
+                    // we use connect here bc the organiser must first exist to make an event post
+                    id : EventAndAdvertisementInfo.organiserId
+                    // this will be derived using the email and id matcher function
                 }
             }
     }
 })
     
 
+}
+
+
+export async function GivenTransactIdReturnEventInfo(transactionId){
+
+}
+
+
+export async function GivenEventIdUpdateTicketNum(event_Id , numberOfTickets , isTicketVip) {
+    // then select the event and update it
+
+    if (isTicketVip){
+        await prisma.event.update({
+            where : {
+                id : event_Id,
+            },
+            data : {
+                AvailableTicketsVip : {
+                    decrement : numberOfTickets
+                }
+            }
+        })
+    }
+
+    else{
+        // if it is normal
+        await prisma.event.update({
+            where : {
+                id : event_Id,
+            },
+            data : {
+                AvailableTicketsNormal : {
+                    decrement : numberOfTickets
+                }
+            }
+        })
+    }
+ 
 }
 
 
@@ -198,20 +263,21 @@ export async function GivenIdSelectOrganiser(OrganiserId) {
 }
 
 export async function ReturnTheTotalPriceOfTickets(UsersEventChoice) {
-    // UsersEventChoice will have = { EventId , TicketType , Quantity }
+    // UsersEventChoice will have = { EventId , TicketType = {vip : true} , Quantity }
     let { EventId , TicketType , Quantity } = UsersEventChoice
-    let priceSelected =  TicketType.vip ? priceVip : priceNormal
     let EventPrice = await prisma.event.findUnique({
         where : {
             id : EventId
         } ,
         select : {
-            [priceSelected] : true
+            priceNormal : true,
+            priceVip : true
+
         }
     })
 
-    let numOfTicket = TicketQuantity || 1
-    let price = EventPrice.priceNormal || EventPrice.priceVip
+    let numOfTicket = Quantity || 1
+    let price =  TicketType.vip ? EventPrice.priceVip : EventPrice.priceNormal
     // bc it will only have either one
     // and users can buy both vip // both normal not combination
 
@@ -223,81 +289,6 @@ export async function ReturnTheTotalPriceOfTickets(UsersEventChoice) {
 // the code 
 // refresh token and access token 
 
-
-export async function getAllEvents() {
-  const events = await prisma.event.findMany(
-    {
-        include : {
-            advertisment : {
-                select : {
-                    advertisement_images : true
-                }
-            },
-        }
-    }
-  ); 
-
-  return events; 
-}
-
-export async function getEventsByOrganiser(organiserId) {
-  try {
-    const organiserWithEvents = await prisma.organiser.findUnique({
-      where: { id: organiserId },
-      include: {
-        eventsOrganised: {
-            include : {
-                // u go to the advertisement table
-                advertisment : {
-                    select : {
-                        advertisement_images : true
-                    }
-                }
-                
-            }
-           
-        } // this fetches all events linked to the organiser
-      },
-    });
-
-    if (!organiserWithEvents) {
-      throw new Error('Organiser not found');
-    }
-
-    return organiserWithEvents.eventsOrganised;
-  } catch (error) {
-    console.error('Error fetching organiser events:', error);
-    throw error;
-  }
-}
-
-export async function getEventsByUser(userId) {
-  try {
-    const userWithEvents = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        eventsBookedAndAttended: {
-          include: {        
-            advertisment: {
-                select : {
-                    advertisement_images : true
-                }
-            },      
-          },
-        },
-      },
-    });
-
-    if (!userWithEvents) {
-      throw new Error('User not found');
-    }
-
-    return userWithEvents.eventsBookedAndAttended;
-  } catch (error) {
-    console.error('Error fetching user events:', error);
-    throw error;
-  }
-}
 
 
 // i need a func to return the numen of available tickers
@@ -332,7 +323,7 @@ export async function EventTableUpdate(EventTicketsBought){
         // ie if it is vip then update availableVip
         EventUpdated = await prisma.event.update({
             data : {
-                AvailableTicketsVip :   AvailableTicketsVip - NumOfTicketsBought
+                AvailableTicketsVip :   { decrement: NumOfTicketsBought }
             } ,
             where :{
                 AND : [
@@ -350,7 +341,7 @@ export async function EventTableUpdate(EventTicketsBought){
         // the event is not vip so update normal
         EventUpdated = await prisma.event.update({
             data : {
-                AvailableTicketsNormal :   AvailableTicketsNormal- NumOfTicketsBought
+                AvailableTicketsNormal :   { decrement: NumOfTicketsBought }
             } ,
             where :{
                 AND : [
@@ -372,3 +363,46 @@ export async function EventTableUpdate(EventTicketsBought){
         return null;
     }
 }
+
+
+export async function CreateTransaction(TransactionInfo){
+    let {eventId , ticketType , numberOfTicketsBought , transactionId } = TransactionInfo;
+
+    await prisma.transaction.create({
+        data : {
+            event : {
+                connect : {
+                    id : eventId // connect the transaction to the event
+                }
+            },
+            ticketType,
+            numberOfTicketsBought,
+            transactionId
+        }
+    })
+}
+
+
+export async function GivenTransactionIdReturnEvent(transactionId) {
+    let obj = await prisma.transaction.findUnique({
+        where : {
+            transactionId,  
+        },
+        select : {
+            ticketType : true ,
+            eventId : true,
+            numberOfTicketsBought : true
+        }
+    })
+
+    return obj
+    
+}export async function getAllEvents() {
+}
+
+export async function getEventsByOrganiser(organiserId) {
+}
+
+export async function getEventsByUser(userId) {
+}
+

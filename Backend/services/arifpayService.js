@@ -1,25 +1,47 @@
+// services/arifpayService.js
 import axios from 'axios';
-import dotenv from 'dotenv';
-dotenv.config();
 
-const BASE = process.env.ARIFPAY_BASE_URL;
-const API_KEY = process.env.ARIFPAY_API_KEY;
-
+/**
+ * Create a checkout session with Arifpay
+ * @param {Object} payload - Payment payload including merchant info, items, user info, etc.
+ * @returns {Object} response from Arifpay (checkoutUrl, sessionId, status)
+ */
 export async function createCheckoutSession(payload) {
-  const res = await axios.post(`${BASE}/checkout/session`, payload, {
-    headers: {
-      'x-arifpay-key': API_KEY,
-      'Content-Type': 'application/json'
-    },
-    timeout: 20000
-  });
-  return res.data;
+  try {
+    const response = await axios.post(
+      `${process.env.ARIFPAY_BASE_URL}/checkout/session`,
+      payload,
+      {
+        headers: {
+          'x-arifpay-key': process.env.ARIFPAY_API_KEY,
+          'Content-Type': 'application/json',
+        },
+        timeout: 20000,
+      }
+    );
+
+    if (!response.data || !response.data.data) {
+      throw new Error('Invalid response from Arifpay');
+    }
+
+    const data = response.data.data;
+
+    return {
+      checkoutUrl: data.paymentUrl,
+      sessionId: data.sessionId,
+      status: data.status,
+    };
+  } catch (error) {
+    console.error('Error creating Arifpay checkout session:', error?.response?.data || error.message);
+    throw error;
+  }
 }
 
-// other helpers like transfer, verify session, etc.
-export async function verifySession(sessionId) {
-  const res = await axios.get(`${BASE}/checkout/session/${sessionId}`, {
-    headers: { 'x-arifpay-key': API_KEY }
-  });
-  return res.data;
-}
+/**
+ * (Optional) You can add additional functions like verifyWebhook, refundPayment, etc.
+ * Example:
+ *
+ * export async function verifyWebhook(signature, payload) {
+ *   // Verify using HMAC SHA256 with process.env.ARIFPAY_WEBHOOK_SECRET
+ * }
+ */
