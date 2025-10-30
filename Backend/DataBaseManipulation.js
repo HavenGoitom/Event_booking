@@ -393,13 +393,83 @@ export async function GivenTransactionIdReturnEvent(transactionId) {
     })
 
     return obj
-    
-}export async function getAllEvents() {
+}   
+export async function getAllEvents() {
+  const events = await prisma.event.findMany(
+    {
+        include : {
+            advertisment : {
+                select : {
+                    advertisement_images : true
+                }
+            },
+        }
+    }
+  ); 
+
+  return events; 
 }
 
 export async function getEventsByOrganiser(organiserId) {
+  try {
+    const organiserWithEvents = await prisma.organiser.findUnique({
+      where: { id: organiserId },
+      include: {
+        eventsOrganised: {
+            include : {
+                // u go to the advertisement table
+                advertisment : {
+                    select : {
+                        advertisement_images : true
+                    }
+                }
+                
+            }
+           
+        } // this fetches all events linked to the organiser
+      },
+    });
+
+    if (!organiserWithEvents) {
+      throw new Error('Organiser not found');
+    }
+
+    return organiserWithEvents.eventsOrganised;
+  } catch (error) {
+    console.error('Error fetching organiser events:', error);
+    throw error;
+  }
 }
 
+
 export async function getEventsByUser(userId) {
+  try {
+    const userWithEvents = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        eventsBookedAndAttended: {
+          include: {        
+            advertisment: {
+                select : {
+                    advertisement_images : true
+                }
+            },      
+          },
+        },
+      },
+    });
+
+    if (!userWithEvents) {
+      throw new Error('User not found');
+    }
+
+    return userWithEvents.eventsBookedAndAttended;
+  } catch (error) {
+    console.error('Error fetching user events:', error);
+    throw error;
+  }
 }
+
+
+// i need a func to return the numen of available tickers
 
