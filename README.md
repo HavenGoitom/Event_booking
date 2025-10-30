@@ -1,52 +1,66 @@
-````markdown
-# ArifochEvents
+``
+# ArifochEvents 🚀
 
-ArifochEvents is a full-stack event booking and management application. Users can browse events, book tickets, and make payments, while organizers can create and manage events. The project leverages modern technologies like React.js, Node.js, Prisma, and PostgreSQL, and integrates JWT authentication and ArifPay as a payment gateway.
+## 🌐 Live Links
+
+[![Frontend](https://img.shields.io/badge/Frontend-Live-blue?style=for-the-badge&logo=react)](your-frontend-live-link)  
+[![Backend](https://img.shields.io/badge/Backend-Live-green?style=for-the-badge&logo=node.js)](your-backend-live-link)  
+[![Postman Docs](https://img.shields.io/badge/Postman-Docs-orange?style=for-the-badge&logo=postman&logoColor=white)](your-postman-doc-link)
+
+---
+```
+```
+## 🛠 Tech Stack
+
+[![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://reactjs.org/)  
+[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)  
+[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)  
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)  
+[![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSONWebTokens&logoColor=white)](https://jwt.io/)  
+[![ArifPay](https://img.shields.io/badge/ArifPay-FF5733?style=for-the-badge&logo=paypal&logoColor=white)](https://arifpay.com/)
+
+---
+```
+```
+## 🌟 Project Overview
+
+**ArifochEvents** is a full-stack event booking and management app where:
+
+- Users can **browse events**, **book tickets**, and **pay securely**.
+- Organizers can **create events** and **manage ticket sales**.
 
 ---
 
-## Features
+## 🚀 Features
 
-### User Features
+### User
 - Browse and search events
-- Book tickets (VIP or Normal)
-- Secure payments via ArifPay
-- JWT authentication for secure sessions
+- Book VIP or Normal tickets
+- Secure payments with ArifPay
+- JWT-based authentication
 
-### Organizer Features
-- Create and manage events
-- Track ticket sales
-- Manage event details and photos
-
----
-
-## Tech Stack
-
-- **Frontend:** React.js
-- **Backend:** Node.js, Express.js
-- **Database:** PostgreSQL (managed via Prisma ORM)
-- **Authentication:** JWT
-- **Payment Gateway:** ArifPay
-- **HTTP Client:** Axios
-- **Package Manager:** npm
+### Organizer
+- Create, update, and manage events
+- Track ticket availability and sales
+- Upload event photos
 
 ---
 
-## Installation
+## ⚙️ Installation
 
-1. Clone the repository:
+1. Clone the repository:  
 
 ```bash
 git clone <your-repo-link>
 ````
 
-2. Navigate to the frontend and backend directories and install dependencies:
+2. Navigate to frontend and backend folders, then install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Start the development servers:
+3. Run the development servers:
 
 ```bash
 npm run dev
@@ -54,51 +68,30 @@ npm run dev
 
 ---
 
-## Live Demo
+## 💡 Usage
 
-* **Frontend:** [Frontend Live Link](your-frontend-live-link)
-* **Backend:** [Backend Live Link](your-backend-live-link)
-
----
-
-## API Documentation
-
-You can explore the API endpoints using Postman:
-[Postman Documentation](your-postman-doc-link)
-
----
-
-## Usage
-
-1. Register as a user or organizer.
-2. Users can browse events and book tickets.
+1. Register as a **user** or **organizer**.
+2. Users can browse and book tickets.
 3. Organizers can create events and manage ticket availability.
-4. Payments are processed securely via ArifPay.
+4. Payments are processed securely via **ArifPay**.
 
 ---
 
-## Notes
+## ⚠️ Notes
 
-* Make sure your `.env` file is properly configured with your database URL and ArifPay credentials.
-* JWT tokens are used to protect sensitive routes in the backend.
-
----
-
-## Author
-
-Haven
+* Ensure your `.env` file is configured with your database URL and ArifPay credentials.
+* JWT tokens protect sensitive backend routes.
 
 ---
 
-## License
+## 👨‍💻 Author
 
-This project is licensed under the MIT License.
-
-```
+**Haven**
 
 ---
 
+## 📜 License
 
+This project is licensed under the **MIT License**.
 
-Do you want me to do that?
 ```
