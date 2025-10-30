@@ -2,7 +2,6 @@ import express from 'express';
 import { authenticateToken} from '../middlewares/authMiddleware.js';
 import {uploadEvent} from '../middlewares/multer.js';
 import { myEvents, getEvents, createEvent, } from '../controllers/events.js';
-import { createPayment } from '../controllers/eventController.js';
 
 
 const eventRouter = express.Router(); //creates a mini sub-application that you can attach routes to.
@@ -13,6 +12,5 @@ eventRouter.get('/',getEvents);//shows all the events created so far in the home
 eventRouter.post('/my', myEvents); // gets the events the user has booked before for organize gets the events he created before 
 eventRouter.post('/create',uploadEvent.single('eventPhoto'),  createEvent); //creates events for organizer
 
-eventRouter.post('/create-payment', createPayment);
 
 export default eventRouter;

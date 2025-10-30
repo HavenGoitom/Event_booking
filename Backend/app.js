@@ -5,8 +5,8 @@ import eventRouter from './routes/eventRoutes.js';
 import dotenv from 'dotenv';
 import path from 'path';
 import cors from "cors";
-import webhookRouter from './routes/webhookRouter.js';
-
+import paymentRoutes from './routes/paymentRoutes.js';
+import { rawBodyMiddleware } from './middlewares/rawBody.js';
 
 dotenv.config(); //loads env variables
 
@@ -21,13 +21,14 @@ app.use(express.json()); //parsing JSON
 app.use('/auth', authRouter);
 app.use('/profile', profileRouter);
 app.use('/events', eventRouter)
-app.use('/api/payments', webhookRouter);
 
+app.use(rawBodyMiddleware);
+app.use('/', paymentRoutes);
 
 // Global error handler (simple)
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
-  res.status(500).json({ message: 'Internal server error' });
+  res.status(500).json({ message: err });
 });
 
 

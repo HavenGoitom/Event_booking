@@ -1,7 +1,7 @@
 import path from 'path';
 import { CreateEvent, getAllEvents, getEventsByOrganiser, getEventsByUser } from '../DataBaseManipulation.js';
 import {ReturnTheTotalPriceOfTickets , GivenEmailSelectTheUser , GivenEventIdSelectAccountAndBankFromOrganiser ,  EventTableUpdate , ReturnTheNumOfTicketsAvailable} from '../DataBaseManipulation.js'
-import { prisma, } from '../prismaClient.js';
+import { prisma } from '../prismaClient.js';
 
 //gets all events
 export const getEvents = async (req,res) => {
