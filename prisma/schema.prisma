@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String  @id @default(uuid())
+  name                    String
+  email                   String  @unique
+  phone                   String  @unique
+  // u need to validate the users phone number before sending it to the server in the backend
+  // u need to send in the form 251900000000 no + nor it wont start with 09
+  password                String
+  // a single user can go to many events
+  eventsBookedAndAttended Event[] @relation(name: "eventPeople")
+  // users dont have a profile picture
+}
+
+model Organiser {
+  id                      String          @id @default(uuid())
+  name                    String
+  merchantId              String          @unique
+  profilePicture          profilePicture?
+  // to ensure a single organizer can have one logo
+  // the organizer will need to have their own account which will be used as a beneficiary
+  BankAccount             String          @unique
+  Bank                    String
+  // like AWINETTA and stuff like that
+  email                   String          @unique
+  DescriptionAboutCompany String
+  // LocatedAt               String
+  password                String
+  eventsOrganised         Event[]         @relation(name: "EventOrganiser")
+  // an organization can have many events organized under its name
+}
+
+model Event {
+  id                     String                 @id @default(uuid())
+  name                   String
+  description            String
+  LocationOfEvent        String
+  AvailableTicketsNormal Int
+  AvailableTicketsVip    Int
+  priceNormal            Int
+  priceVip               Int
+  // there is a many to many relationship between events and organizers
+  organiser              Organiser              @relation(name: "EventOrganiser", fields: [organiserId], references: [id])
+  organiserId            String
+  // there are many people attending an event
+  peopleAttended         User[]                 @relation(name: "eventPeople")
+  // an event can have a single record in AdvertismentForEventTable
+  advertisment           AdvertisementForEvent?
+
+  transaction Transaction[]
+}
+
+model AdvertisementForEvent {
+  id                   String @id @default(uuid())
+  advertisement_images String
+  advertisement_videos String
+  event                Event  @relation(fields: [eventId], references: [id])
+  eventId              String @unique
+  // bc it is a one to one relation
+}
+
+model profilePicture {
+  // in prisma model names are singular
+  id             String     @id @default(uuid())
+  organisationId String?    @unique
+  organisation   Organiser? @relation(fields: [organisationId], references: [id])
+  picture        String
+}
+
+// the organiser needs to be optional like one of them needs to be null
+
+// picture will be a link to the cloud storage
+
+model Transaction {
+  // id will be created when given
+  id                    String @id @default(uuid())
+  status                String @default("pending")
+  transactionId         String @unique
+  eventId               String
+  event                 Event  @relation(fields: [eventId], references: [id])
+  ticketType            String
+  numberOfTicketsBought Int
+}
