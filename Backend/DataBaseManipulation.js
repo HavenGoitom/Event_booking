@@ -141,8 +141,8 @@ export async function CreateAndUpdateProfile(ProfilePicture) {
 
 
 // creating an event
-export async function CreateEvent(EventAndAdvertisementInfo){
-    // EventInfo = {name , description , Location , AvailableTicket , normalprice , vipPrice }             String
+export async function CreateEvent(info){
+    // EventInfo = {name , description , dayOfEvent, Location , AvailableTicket , normalprice , vipPrice, date }             String
     // but an event is dependent on an organiser
     // so when 
     // EventInfo needs to be structured like the model and will have the email of the organiser
@@ -150,27 +150,20 @@ export async function CreateEvent(EventAndAdvertisementInfo){
     
     // EventInfo['organiserId'] = organiserId; since many to many we dont need this
     // since every advert is linked to an event use nested create
-    const { name, description, LocationOfEvent, AvailableTickets, priceNormal, priceVip, organiserId, advertismentImage, advertismentVideo } = EventAndAdvertisementInfo
     return await prisma.event.create({
         data : {
-            name,          
-            description ,     
-            LocationOfEvent , 
-            AvailableTicketsNormal : AvailableTickets.AvailableTicketsNormal , 
-            AvailableTicketsVip : AvailableTickets.AvailableTicketsVip,
-            priceNormal ,      
-            priceVip  ,    
+            name: info.name,
+            description: info.description,
+            dayOfEvent: info.dayOfEvent,
+            LocationOfEvent: info.LocationOfEvent,
+            AvailableTicketsNormal: Number(info.AvailableTicketsNormal),
+            AvailableTicketsVip: Number(info.AvailableTicketsVip),
+            priceNormal: Number(info.priceNormal),
+            priceVip: Number(info.priceVip),
+            organiser: { connect: { id: info.organiserId } },
             advertisment : {
                 create : {
-                    advertisement_images: EventAndAdvertisementInfo.advertismentImage,
-                    // advertisement_videos : EventAndAdvertisementInfo.advertismentVideo
-                }
-            },
-            organiser : {
-                connect : {
-                    // we use connect here bc the organiser must first exist to make an event post
-                    id : EventAndAdvertisementInfo.organiserId
-                    // this will be derived using the email and id matcher function
+                    advertisement_images : info.picturePath
                 }
             }
     }
@@ -178,6 +171,10 @@ export async function CreateEvent(EventAndAdvertisementInfo){
     
 
 }
+
+
+
+
 
 
 export async function GivenTransactIdReturnEventInfo(transactionId){

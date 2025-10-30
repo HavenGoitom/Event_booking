@@ -1,16 +1,14 @@
+// routes/paymentRoutes.mjs
 import express from 'express';
-import { authenticateToken} from '../middlewares/authMiddleware.js';
-import { arifPayFunction } from '../controllers/checkoutController.js';
-import { arifpayWebhookHandler } from '../controllers/webhookController.js';
+import { arifPayFunction, notifyHandler } from '../controllers/paymentController.js';
 
-const paymentRouter = express.Router();
-paymentRouter.use(authenticateToken);
+const router = express.Router();
 
-// payment routes
+// client initiates payment
+router.post('/paymentProcess', arifPayFunction);
 
-paymentRouter.post('/checkout', express.json(), arifPayFunction);
-paymentRouter.post(process.env.WEBHOOK_ENDPOINT_PATH || '/webhooks/arifpay', express.raw({ type: 'application/json' }), arifpayWebhookHandler);
+// webhook notify path — use env NOTIFY_PATH or this default
+const notifyPath = process.env.NOTIFY_PATH || '/api/payments/notify';
+router.post(notifyPath, notifyHandler);
 
-
-
-export default paymentRouter;
+export default router;

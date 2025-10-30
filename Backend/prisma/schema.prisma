@@ -68,7 +68,6 @@ model Event {
 model AdvertisementForEvent {
   id                   String @id @default(uuid())
   advertisement_images String
-  advertisement_videos String
   event                Event  @relation(fields: [eventId], references: [id] , onDelete: Cascade)
   eventId              String @unique
   // bc it is a one to one relation

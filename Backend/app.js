@@ -6,8 +6,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import cors from "cors";
 import paymentRoutes from './routes/paymentRoutes.js';
-
-
+import { rawBodyMiddleware } from './middlewares/rawBody.js';
 
 dotenv.config(); //loads env variables
 
@@ -23,9 +22,8 @@ app.use('/auth', authRouter);
 app.use('/profile', profileRouter);
 app.use('/events', eventRouter)
 
-
-app.use('/api', paymentRoutes);
-app.get('/', (req,res)=>res.send('API is up'));
+app.use(rawBodyMiddleware);
+app.use('/', paymentRoutes);
 
 // Global error handler (simple)
 app.use((err, req, res, next) => {
