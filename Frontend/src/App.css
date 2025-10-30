@@ -1,0 +1,9 @@
+#root { max-width: 1280px; margin: 0 auto; padding: 2rem; text-align: center; }
+
+.card { padding: 2em; }
+.read-the-docs { color: #888; }
+
+/* Event card inside generic places (kept) */
+.event-card .content { padding: 12px; }
+.event-card h3 { margin: 0 0 6px; font-size: 18px; color: #111; }
+.event-card p { margin: 0; color: #444; font-size: 14px; }
