@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>sign up page</title>
+
+    <style>
+      body {
+        background-color: gray;
+        display: flex;
+        justify-content: center;
+      }
+
+      .sign-up-box {
+        margin-top: 70px;
+        background-color: rgb(26, 26, 26);
+        height: 600px;
+        width: 450px;
+        border-radius: 65px;
+        padding-left: 40px;
+        padding-top: 20px;
+        position: relative;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+
+      .title {
+        color: white;
+        margin-bottom: 30px;
+        margin-top: 50px;
+        line-height: 20px;
+        font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+          "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+      }
+
+      p {
+        color: gray;
+        font-size: 17px;
+        margin-bottom: 0px;
+        line-height: 1.6px;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .sign-in-button {
+        margin-top: 250px;
+        margin-right: 110px;
+        margin-left: 20px;
+        padding: 20px 30px;
+        font-size: 20px;
+        border-radius: 40px;
+        background-color: rgb(26, 42, 72);
+        border: none;
+        color: white;
+      }
+      .sign-in-button:hover,
+      .sign-up-button:hover {
+        background-color: rgb(93, 92, 92);
+        transform: scale(1.05);
+      }
+      .sign-up-button {
+        margin-top: 250px;
+        padding: 20px 30px;
+        font-size: 20px;
+        border-radius: 40px;
+        border: none;
+        background-color: rgb(26, 42, 72);
+        color: white;
+      }
+
+      .sign-up-as {
+        padding: 16px 12px;
+        font-size: 18px;
+        border-radius: 40px;
+        background-color: rgb(26, 42, 72);
+        border: none;
+        color: white;
+        cursor: pointer;
+        width: fit-content;
+        margin-top: 5px;
+      }
+
+      .dropdown {
+        position: absolute;
+        bottom: 20px;
+        left: 54%;
+        background-color: rgb(26, 26, 26);
+        border-radius: 40px;
+      }
+
+      .personal-infos {
+        color: rgb(218, 216, 209);
+        font-size: 18px;
+        font-family: Arial;
+        margin-top: 30px;
+      }
+
+      .info-input,
+      .discription {
+        padding: 10px 30px;
+        border-radius: 5px;
+        border: none;
+        margin-bottom: 15px;
+      }
+
+      .back-button {
+        font-size: 2.5rem;
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 10px 15px;
+        transition: transform 0.2s ease;
+      }
+
+      .back-button:hover {
+        transform: scale(1.2);
+        color: #ccc;
+      }
+
+      .next-button {
+        font-size: 18px;
+        border-radius: 40px;
+        background-color: rgb(26, 42, 72);
+        border: none;
+        color: white;
+        padding: 20px 30px;
+      }
+
+      .next-button-div {
+        margin-top: 50px;
+        margin-left: 300px;
+        margin-bottom: 40px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="sign-up-box"></div>
+    <div class="sign-up-user-organizer"></div>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+      function signOut() {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("userProfile");
+        window.location.href = "/";
+      }
+
+      function SignIn({ onSignedIn, onBack }) {
+        const [email, setEmail] = React.useState("");
+        const [password, setPassword] = React.useState("");
+        const [loading, setLoading] = React.useState(false);
+
+        async function handleSignIn() {
+          if (!email.trim() || !password) {
+            alert("Please enter email and password.");
+            return;
+          }
+
+          setLoading(true);
+          try {
+            const res = await fetch("url for signin", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: email.trim(), password }),
+            });
+
+            const data = await res.json();
+            console.log("signin response:", data);
+
+            if (data.success && data.token) {
+              localStorage.setItem("authToken", data.token);
+              if (data.user)
+                localStorage.setItem("userProfile", JSON.stringify(data.user));
+
+              if (typeof onSignedIn === "function")
+                onSignedIn(data.user || null);
+
+              // small change: go to SPA route
+              window.location.href = "/home";
+            } else {
+              alert("Sign in failed.");
+            }
+          } catch (err) {
+            console.error("Network or parsing error:", err);
+            alert("Please try again.");
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        return (
+          <div>
+            <button className="back-button" onClick={onBack}>🡐</button>
+            <h1 className="title">Sign In</h1>
+
+            <h1 className="personal-infos">Email</h1>
+            <input
+              className="info-input"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+
+            <h2 className="personal-infos">Password</h2>
+            <input
+              className="info-input"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+
+            <div className="next-button-div">
+              <button
+                className="next-button"
+                onClick={handleSignIn}
+                disabled={loading}
+              >
+                {loading ? "Signing in..." : "Sign in"}
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      function UserPage({ onBack }) {
+        const [username, setUsername] = React.useState("");
+        const [email, setEmail] = React.useState("");
+        const [password, setPassword] = React.useState("");
+
+        function handleSubmit() {
+          if (!username || !email || !password) {
+            alert("Please fill in all fields!");
+            return;
+          }
+
+          fetch("url here", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, email, password }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              console.log("your response is", data);
+              localStorage.setItem('role', 'user');
+              if (data.success) {
+                alert("Account created successfully!");
+                window.location.href = "/home";
+              } else {
+                alert(data.message || "Signup failed");
+              }
+            })
+            .catch((err) => {
+              console.error("error:", err);
+              alert("something went wrong");
+            });
+        }
+
+        return (
+          <>
+            <button className="back-button" onClick={onBack}>🡐</button>
+            <h1 className="title">Sign up as a User</h1>
+            <h1 className="personal-infos">Username</h1>
+            <input
+              className="info-input"
+              placeholder="Username"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+            />
+
+            <h1 className="personal-infos">Email</h1>
+            <input
+              className="info-input"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+
+            <h1 className="personal-infos">Password</h1>
+            <input
+              className="info-input"
+              placeholder="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+
+            <div className="next-button-div">
+              <button className="next-button" onClick={handleSubmit}>Next</button>
+            </div>
+          </>
+        );
+      }
+
+      function OrganizerPage({ onBack }) {
+        const [organizationName, setOrganizationName] = React.useState("");
+        const [email, setEmail] = React.useState("");
+        const [password, setPassword] = React.useState("");
+        const [description, setDescription] = React.useState("");
+        const [website, setWebsite] = React.useState("");
+
+        function handleSubmit() {
+          if (!organizationName || !email || !password || !description) {
+            alert("Please fill in all fields!");
+            return;
+          }
+
+          fetch("url for organizers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ organizationName, email, password, description, website }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              console.log("response from backend-", data);
+              localStorage.setItem('role', 'organizer');
+              localStorage.setItem('organizer', JSON.stringify({ organizationName, email, description }));
+
+              if (data.success) {
+                alert("Organizer account created successfully!");
+                window.location.href = "/home";
+              }
+            })
+            .catch((err) => {
+              console.error("Error:", err);
+              alert("Something went wrong!");
+            });
+        }
+
+        return (
+          <>
+            <button className="back-button" onClick={onBack}>🡐</button>
+            <h1 className="title">Sign up as an Organizer</h1>
+
+            <h1 className="personal-infos">Organization Name</h1>
+            <input
+              className="info-input"
+              placeholder="Organization Name"
+              value={organizationName}
+              onChange={(event) => setOrganizationName(event.target.value)}
+            />
+
+            <h1 className="personal-infos">Email</h1>
+            <input
+              className="info-input"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+
+            <h1 className="personal-infos">Password</h1>
+            <input
+              className="info-input"
+              placeholder="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+
+            <h1 className="personal-infos">Description</h1>
+            <input
+              className="discription"
+              placeholder="Tell us what your Organizer does and the kind of events you host"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+
+            <h1 className="personal-infos">Website</h1>
+            <input
+              className="info-input"
+              placeholder="https://example.com"
+              value={website}
+              onChange={(event) => setWebsite(event.target.value)}
+            />
+
+            <div className="next-button-div">
+              <button className="next-button" onClick={handleSubmit}>Next</button>
+            </div>
+          </>
+        );
+      }
+
+      function SignUpAs({ onPick }) {
+        return (
+          <div className="dropdown">
+            <button className="sign-up-as" onClick={() => onPick("user")}>A User</button>
+            <button className="sign-up-as" onClick={() => onPick("organizer")}>An Event Organizer</button>
+          </div>
+        );
+      }
+
+      function Sign() {
+        const [showAs, setShowAs] = React.useState(false);
+        const [page, setPage] = React.useState("welcome");
+
+        function handlePick(type) {
+          setPage(type);
+          setShowAs(false);
+        }
+
+        if (page === "user") return <UserPage onBack={() => setPage("welcome")} />;
+        if (page === "organizer") return <OrganizerPage onBack={() => setPage("welcome")} />;
+        if (page === "signin") return <SignIn onSignedIn={()=>{}} onBack={() => setPage("welcome")} />;
+
+        return (
+          <div className="main">
+            <div className="title">
+              <h1>Welcome to Event-</h1>
+              <h1>Booking</h1>
+            </div>
+            <hr />
+            <p>where organizers connect with audiences</p>
+            <p>and users find events worth attending.</p>
+            <p>Discover events that inspire, entertain, and</p>
+            <p>bring people together.</p>
+
+            <button className="sign-in-button" onClick={() => setPage("signin")}>Sign-in</button>
+            <button className="sign-up-button" onClick={() => setShowAs(true)}>Sign-up</button>
+
+            {showAs && <SignUpAs onPick={handlePick} />}
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.querySelector(".sign-up-box"));
+      root.render(<Sign />);
+    </script>
+  </body>
+</html>
