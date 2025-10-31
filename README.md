@@ -1,8 +1,8 @@
 # ArifochEvents 🚀
 
 ## 🌐 Live Links
+[![Frontend](https://img.shields.io/badge/Frontend-Live-blue?style=for-the-badge&logo=react)](https://your-frontend-live-link) [![Backend](https://img.shields.io/badge/Backend-Live-green?style=for-the-badge&logo=node.js)](https://arifochevents.onrender.com) [![Postman Docs](https://img.shields.io/badge/Postman-Docs-orange?style=for-the-badge&logo=postman&logoColor=white)](https://documenter.getpostman.com/view/44518762/2sB3WjyPAM)
 
-[![Frontend](https://img.shields.io/badge/Frontend-Live-blue?style=for-the-badge&logo=react)](your-frontend-live-link) [![Backend](https://img.shields.io/badge/Backend-Live-green?style=for-the-badge&logo=node.js)]([your-backend-live-link](https://arifochevents.onrender.com)) [![Postman Docs](https://img.shields.io/badge/Postman-Docs-orange?style=for-the-badge&logo=postman&logoColor=white)]([your-postman-doc-link](https://documenter.getpostman.com/view/44518762/2sB3WjyPAM))
 
 ## 🛠 Tech Stack
 
