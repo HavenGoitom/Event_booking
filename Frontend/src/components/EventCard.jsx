@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from "react";
 
 const API_BASE = "https://arifochevents.onrender.com";
-const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x220/2a2a3b/ffffff?text=No+Image";
+const PLACEHOLDER_IMAGE = "https://th.bing.com/th/id/OIP.cfk754kXI2-IKDc0lW5vUwHaHa?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3";
 
 export default function EventCard({ event, onClick, onImageError }) {
   const title = event.name || event.title || "Untitled";
