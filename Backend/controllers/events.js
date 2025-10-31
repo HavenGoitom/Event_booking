@@ -6,11 +6,32 @@ import { prisma } from '../prismaClient.js';
 //gets all events
 export const getEvents = async (req,res) => {
   try {
-    const events = await getAllEvents()
+    const rawEvents = await getAllEvents()
 
-    if (!events || events.length === 0) {
+    if (!rawEvents || rawEvents.length === 0) {
       return res.status(404).json({ message: 'No events found!!!' });
     }
+
+    // Normalize image URLs so frontend always receives full, fetchable URLs
+    const base = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+    const events = rawEvents.map((ev) => {
+      // Prefer advertisement image if present
+      let img = ev?.advertisment?.advertisement_images || ev.imageURL || ev.url || '';
+      if (img && !/^https?:\/\//i.test(img)) {
+        // Ensure it starts with a single leading slash
+        const clean = img.startsWith('/') ? img : `/${img}`;
+        img = `${base}${clean}`;
+      }
+      // Attach normalized fields without mutating prisma objects dangerously
+      return {
+        ...ev,
+        url: img, // common key many frontends check first
+        imageURL: img,
+        advertisment: ev.advertisment
+          ? { ...ev.advertisment, advertisement_images: img || ev.advertisment.advertisement_images }
+          : ev.advertisment,
+      };
+    });
 
     return res.status(200).json({
       message: 'Events fetched successfully',
@@ -67,8 +88,10 @@ export const createEvent = async (req, res) => {
     const filename = req.file.filename ?? path.basename(req.file.path);
     // relative path that matches your express.static mount
     const relativePath = path.posix.join('/uploads', 'eventPhoto', filename);
+    // Use BASE_URL if set (for production), otherwise infer from request
+    const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
     // absolute public URL (what the frontend can fetch)
-    const fullUrl = `${req.protocol}://${req.get('host')}${relativePath}`;
+    const fullUrl = `${baseUrl}${relativePath}`;
 
     // Save the full URL into the DB (Option B)
     const events = await CreateEvent({

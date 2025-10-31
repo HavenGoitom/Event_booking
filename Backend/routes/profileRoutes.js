@@ -7,7 +7,8 @@ const profileRouter = express.Router(); //creates a mini sub-application that yo
 
 
 profileRouter.use(authenticateToken); // all routes below are protected
-profileRouter.post("/", getProfile);
+profileRouter.get("/", getProfile); // GET endpoint for profile
+profileRouter.post("/", getProfile); // POST endpoint for backward compatibility
 /*
 it should have the same name as this in the frontend
 <form action="/profile" method="post" enctype="multipart/form-data">

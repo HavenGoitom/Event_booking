@@ -38,6 +38,23 @@ body{
 
 .signout{
   margin-left: -250px;
+  padding: 8px 16px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.signout:hover {
+  background: #c82333;
+}
+
+.signout:active {
+  background: #bd2130;
 }
 
 .user-button {
@@ -145,6 +162,42 @@ body{
   color:#000;
 }
 
+.event-location,
+.event-date,
+.event-price {
+  margin: 6px 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.event-location {
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.event-price {
+  margin-top: 8px;
+  color: #555;
+  font-size: 13px;
+}
+
+.event-date {
+  color: #777;
+  font-size: 13px;
+}
+
+.content h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
 /* Modal */
 /* === Modal Styles (match UserHome) === */
 .modal-overlay {
@@ -164,9 +217,13 @@ body{
   border-radius: 16px;
   max-width: 600px;
   width: 90%;
+  max-height: 80vh;
   padding: 20px;
   position: relative;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .modal-close {
@@ -189,4 +246,8 @@ body{
 
 .modal-content {
   margin-top: 15px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  padding-right: 8px;
 }

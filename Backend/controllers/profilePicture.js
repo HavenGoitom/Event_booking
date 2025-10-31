@@ -45,21 +45,77 @@ export const createAndUpdateProfile = async (req, res) => {
 
 export const getProfile = async (req,res)=>{
     try {
-        const { email } = req.body; // get email from route params
-      if(!email){return res.status(402).json({ message: 'Email is required' });}
-        let profile = await prisma.organiser.findUnique({ where: { email: email } , select: {
-           name: true,               
-           profilePicture: true,      
-           BankAccount : true,           
-           Bank: true,                  
-           email:true,                   
-           DescriptionAboutCompany:true, 
-        } });
+        // Get user info from JWT token (set by authenticateToken middleware)
+        const userId = req.user?.id;
+        const email = req.user?.email;
+        const role = req.user?.role;
 
-        if (!profile) return res.status(404).json({ message: 'Profile not found' });
-        return res.status(200).json(profile);
+        if (!userId || !email) {
+            return res.status(401).json({ message: 'User information not found in token' });
+        }
+
+        // Get role from request body if available, otherwise from token
+        const requestedRole = req.body?.role || role;
+
+        if (requestedRole === 'org' || role === 'org') {
+            // Fetch organizer profile
+            let profile = await prisma.organiser.findUnique({ 
+                where: { email: email },
+                include: {
+                    profilePicture: {
+                        select: {
+                            picture: true
+                        }
+                    }
+                },
+                select: {
+                   name: true,               
+                   profilePicture: {
+                       select: {
+                           picture: true
+                       }
+                   },
+                   BankAccount: true,           
+                   Bank: true,                  
+                   email: true,                   
+                   DescriptionAboutCompany: true, 
+                } 
+            });
+
+            if (!profile) return res.status(404).json({ message: 'Organizer profile not found' });
+            
+            // Format profile picture URL
+            const profileData = {
+                ...profile,
+                profilePhoto: profile.profilePicture?.picture || null,
+                role: 'org'
+            };
+            
+            return res.status(200).json(profileData);
+        } else {
+            // Fetch user profile
+            let profile = await prisma.user.findUnique({ 
+                where: { email: email },
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    phone: true,
+                } 
+            });
+
+            if (!profile) return res.status(404).json({ message: 'User profile not found' });
+            
+            const profileData = {
+                ...profile,
+                role: 'user'
+            };
+            
+            return res.status(200).json(profileData);
+        }
   } catch (err) {
-        res.status(500).json({ message: 'Internal server error' });
+        console.error('getProfile error:', err);
+        res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 };
 /*model profilePicture {

@@ -3,6 +3,7 @@ import Auth from "./pages/Sign.jsx"; // Sign in / Sign up combined component
 import UserHome from "./pages/UserHome";
 import OrganizerHome from "./pages/OrganizerHome";
 import HostedEvents from "./components/HostedEvents/Hostedevents.jsx";
+import BookedEvents from "./components/BookedEvents.jsx";
 
 export default function App() {
   const token = localStorage.getItem("accessToken");
@@ -17,6 +18,7 @@ export default function App() {
       <Route path="/sign" element={<Auth />} />
 
       <Route path="/hosted-events" element={<HostedEvents />} />
+      <Route path="/booked-events" element={<BookedEvents />} />
 
       {/* Public routes */}
       <Route

@@ -26,7 +26,15 @@ export const login = async (req,res) => {
           return res.status(200).json({
           message: 'User successfully logged in',
           accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken
+          refreshToken: tokens.refreshToken,
+          organizer: {
+            name: orgExists.name,
+            email: orgExists.email,
+            Bank: orgExists.Bank,
+            BankAccount: orgExists.BankAccount,
+            DescriptionAboutCompany: orgExists.DescriptionAboutCompany,
+            merchantId: orgExists.merchantId
+          }
   });
         }
         return res.status(400).json({message: 'Invalid email or password'})
@@ -42,7 +50,12 @@ export const login = async (req,res) => {
           return res.status(200).json({
           message: 'User successfully logged in',
           accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken
+          refreshToken: tokens.refreshToken,
+          user: {
+            name: userExists.name,
+            email: userExists.email,
+            phone: userExists.phone
+          }
   });
         }
         return res.status(400).json({message: 'password doesnt match'})
@@ -86,7 +99,19 @@ export const signup = async(req,res)=> {
             DescriptionAboutCompany: DescriptionAboutCompany
         })
         const tokens = generateTokens(newOrg);
-        return res.status(201).json({ message: 'Organizer is registered', accessToken: tokens.accessToken,refreshToken: tokens.refreshToken});
+        return res.status(201).json({ 
+          message: 'Organizer is registered', 
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          organizer: {
+            name: newOrg.name,
+            email: newOrg.email,
+            Bank: newOrg.Bank,
+            BankAccount: newOrg.BankAccount,
+            DescriptionAboutCompany: newOrg.DescriptionAboutCompany,
+            merchantId: newOrg.merchantId
+          }
+        });
 
     }else if(role == 'user'){
       const {name, email, password, phone} = req.body;
@@ -114,7 +139,16 @@ export const signup = async(req,res)=> {
           phone: phone
       })
       const tokens = generateTokens(newUser);
-        return res.status(201).json({ message: 'User registered', accessToken: tokens.accessToken,refreshToken: tokens.refreshToken});
+        return res.status(201).json({ 
+          message: 'User registered', 
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          user: {
+            name: newUser.name,
+            email: newUser.email,
+            phone: newUser.phone
+          }
+        });
     }else {
       return res.status(400).json({ message: 'Invalid role' });
     } 

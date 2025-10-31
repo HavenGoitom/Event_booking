@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import EventCard from "../EventCard.jsx";
-import "../../pages/OrganizerHome.css";
+import EventCard from "./EventCard.jsx";
+import "../pages/UserHome.css";
 
 const API_BASE = "https://arifochevents.onrender.com";
 
@@ -17,18 +17,16 @@ function readJson(key) {
 }
 
 function getCandidateEmails() {
-  const org = readJson("organizer");
   const prof = readJson("userProfile");
   const out = [];
 
-  if (org?.email && typeof org.email === "string") out.push(org.email.trim());
   if (prof?.email && typeof prof.email === "string") out.push(prof.email.trim());
 
   return [...new Set(out.filter(Boolean))];
 }
 
 async function callEventsMy(email, token) {
-  const payload = { role: "org", email };
+  const payload = { role: "user", email };
   const res = await fetch(`${API_BASE}/events/my`, {
     method: "POST",
     headers: {
@@ -81,6 +79,11 @@ function normalizeEvent(ev, idx) {
   }
   // If empty, EventCard will use placeholder
 
+  // Get ticket info from transaction if available
+  const transaction = ev.transactions?.[0];
+  const ticketType = transaction?.ticketType || "normal";
+  const quantity = transaction?.numberOfTicketsBought || 1;
+
   return {
     id: ev.id || ev._id || String(idx),
     name: ev.name || "Untitled Event",
@@ -96,10 +99,14 @@ function normalizeEvent(ev, idx) {
       ev.organiserName ||
       "Organizer",
     imageURL,
+    date: ev.date || "",
+    ticketType,
+    quantity,
+    transaction: transaction || null,
   };
 }
 
-export default function HostedEvents() {
+export default function BookedEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -111,16 +118,16 @@ export default function HostedEvents() {
   useEffect(() => {
     (async () => {
       if (!token) {
-        setError("You're not signed in. Please sign in as an organizer.");
+        setError("You're not signed in. Please sign in as a user.");
         setLoading(false);
         return;
       }
-      if (role !== "org") {
-        setError("Please sign in as an organizer to view hosted events.");
+      if (role !== "user") {
+        setError("Please sign in as a user to view booked events.");
         setLoading(false);
         return;
       }
-      // If we don't have an email locally, try fetching profile from backend
+      // If no email locally, fetch profile from backend
       let emails = candidateEmails.slice();
       if (!emails.length) {
         try {
@@ -130,21 +137,19 @@ export default function HostedEvents() {
           });
           if (res.ok) {
             const profile = await res.json();
-            if (profile?.email) {
-              emails = [profile.email];
-            }
+            if (profile?.email) emails = [profile.email];
           }
         } catch (e) {
-          console.warn("Failed to fetch organizer profile from backend:", e);
+          console.warn("Failed to fetch user profile from backend:", e);
         }
       }
       if (!emails.length) {
-        setError("Organizer email not found. Please sign in again.");
+        setError("User email not found. Please sign in again.");
         setLoading(false);
         return;
       }
 
-      console.log("Fetching hosted events with:", { candidateEmails, role });
+      console.log("Fetching booked events with:", { candidateEmails, role });
 
       setLoading(true);
       setError("");
@@ -162,70 +167,50 @@ export default function HostedEvents() {
         } catch (err) {
           console.error(`Error fetching events for ${email}:`, err);
           if (/email\s+is\s+not\s+correct/i.test(err?.message || "")) continue;
-          setError(err.message || "Failed to fetch hosted events.");
+          setError(err.message || "Failed to fetch booked events.");
           setLoading(false);
           return;
         }
       }
 
       setError(
-        "Backend rejected the provided emails. Please sign out and sign back in as the organizer."
+        "Backend rejected the provided emails. Please sign out and sign back in as a user."
       );
       setLoading(false);
     })();
   }, [token, role, candidateEmails]);
 
-  const organizer = useMemo(() => {
-    try {
-      return (
-        JSON.parse(localStorage.getItem("organizer") || "null") ||
-        JSON.parse(localStorage.getItem("userProfile") || "null") ||
-        null
-      );
-    } catch {
-      return null;
-    }
-  }, []);
-
   return (
-    <div className="organizer-home">
-      <div style={{ marginTop: "80px", padding: "20px" }}>
-        <h1 style={{ color: "white", marginBottom: "30px" }}>Your Hosted Events</h1>
-        
-        {/* Organizer Profile Info */}
-        {organizer && (
-          <div style={{
-            background: "#2a2a3b",
-            padding: "20px",
-            borderRadius: "12px",
-            marginBottom: "30px",
-            color: "white"
-          }}>
-            <h2 style={{ marginTop: 0 }}>Organizer Profile</h2>
-            <p><strong>Name:</strong> {organizer.name || "N/A"}</p>
-            <p><strong>Email:</strong> {organizer.email || "N/A"}</p>
-            {organizer.Bank && <p><strong>Bank:</strong> {organizer.Bank}</p>}
-            {organizer.BankAccount && <p><strong>Bank Account:</strong> {organizer.BankAccount}</p>}
-            {organizer.DescriptionAboutCompany && (
-              <p><strong>Company Description:</strong> {organizer.DescriptionAboutCompany}</p>
-            )}
-          </div>
-        )}
-
-        {error ? (
-          <p style={{ color: "red", padding: "20px" }}>❌ {error}</p>
-        ) : loading ? (
-          <p style={{ color: "white", padding: "20px" }}>Loading hosted events...</p>
-        ) : events.length === 0 ? (
-          <p style={{ color: "white", padding: "20px" }}>You haven't hosted any events yet.</p>
-        ) : (
-          <div className="event-grid">
-            {events.map((e) => (
-              <EventCard key={e.id} event={e} />
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="user-home">
+      <h1 style={{ marginTop: "100px", padding: "20px", color: "white" }}>My Booked Events</h1>
+      {error ? (
+        <p style={{ color: "red", padding: "20px" }}>❌ {error}</p>
+      ) : loading ? (
+        <p style={{ padding: "20px", color: "white" }}>Loading booked events...</p>
+      ) : events.length === 0 ? (
+        <p style={{ padding: "20px", color: "white" }}>You haven't booked any events yet.</p>
+      ) : (
+        <div className="event-grid">
+          {events.map((e) => (
+            <div key={e.id} style={{ position: "relative" }}>
+              <EventCard event={e} />
+              <div style={{
+                position: "absolute",
+                bottom: "10px",
+                right: "10px",
+                background: "rgba(0, 0, 0, 0.7)",
+                color: "white",
+                padding: "8px 12px",
+                borderRadius: "8px",
+                fontSize: "12px"
+              }}>
+                {e.quantity}x {e.ticketType?.toUpperCase() || "NORMAL"}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
+

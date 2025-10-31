@@ -16,14 +16,23 @@ function getToken() {
 function normalizeUrl(u) {
   if (!u) return "";
   let s = String(u).trim().replace(/^"+|"+$/g, "");
-  if (s.startsWith("//")) s = "https:" + s;
-  if (!/^https?:\/\//i.test(s)) {
-    const clean = s.startsWith("/") ? s : `/${s}`;
-    s = `${API_BASE}${clean}`;
+  
+  // If it's already a full URL, validate and return
+  if (/^https?:\/\//i.test(s)) {
+    // Force https for production
+    s = s.replace(/^http:\/\//i, "https://");
+    s = s.replace("http://arifochevents.onrender.com", "https://arifochevents.onrender.com");
+    return s;
   }
-  // force https and canonical host
-  s = s.replace(/^http:\/\//i, "https://");
-  s = s.replace("http://arifochevents.onrender.com", "https://arifochevents.onrender.com");
+  
+  // Handle relative paths
+  if (s.startsWith("//")) s = "https:" + s;
+  if (s.startsWith("/uploads") || s.startsWith("/")) {
+    s = `${API_BASE}${s}`;
+  } else {
+    s = `${API_BASE}/${s}`;
+  }
+  
   return s;
 }
 
@@ -32,7 +41,13 @@ function pickImage(ev) {
     ev?.advertisment?.advertisement_images ||
     ev?.url ||
     ev?.imageURL ||
+    ev?.imageUrl ||
+    ev?.image ||
+    ev?.photo ||
+    ev?.eventPhotoURL ||
     "";
+  
+  if (!cand) return "";
   return normalizeUrl(cand);
 }
 
@@ -102,23 +117,33 @@ export default function OrganizerHome() {
 
       const list = Array.isArray(data) ? data : data.events || data.data || [];
 
-      const normalized = list.map((ev) => ({
-        id: ev.id || ev._id,
-        name: ev.name || "Untitled Event",
-        description: ev.description || "",
-        LocationOfEvent: ev.LocationOfEvent || "TBA",
-        AvailableTicketsNormal: ev.AvailableTicketsNormal ?? 0,
-        AvailableTicketsVip: ev.AvailableTicketsVip ?? 0,
-        priceNormal: ev.priceNormal ?? 0,
-        priceVip: ev.priceVip ?? 0,
-        organizerName:
-          ev.organizerName ||
-          ev.organiserName ||
-          ev.organiserId ||
-          ev.organizerId ||
-          "Organizer",
-        imageURL: pickImage(ev),
-      }));
+      const normalized = list.map((ev) => {
+        // Get organizer name from the included organiser relation
+        const organizerName = ev?.organiser?.name || 
+                             ev.organizerName ||
+                             ev.organiserName ||
+                             "Organizer";
+        
+        // Get image - always ensure we have a URL
+        let imageURL = pickImage(ev);
+        if (!imageURL) {
+          // If no image found, use empty string (EventCard will use placeholder)
+          imageURL = "";
+        }
+        
+        return {
+          id: ev.id || ev._id,
+          name: ev.name || "Untitled Event",
+          description: ev.description || "",
+          LocationOfEvent: ev.LocationOfEvent || "TBA",
+          AvailableTicketsNormal: ev.AvailableTicketsNormal ?? 0,
+          AvailableTicketsVip: ev.AvailableTicketsVip ?? 0,
+          priceNormal: ev.priceNormal ?? 0,
+          priceVip: ev.priceVip ?? 0,
+          organizerName: organizerName,
+          imageURL: imageURL,
+        };
+      });
 
       // latest first
       let ordered = normalized.slice().reverse();
@@ -164,14 +189,16 @@ export default function OrganizerHome() {
         </div>
         <div className="home-page-text">Organizer</div>
 
-        {/* Profile button → hosted events */}
-        <button
-          className="user-button"
-          onClick={() => navigate("/hosted-events")}
-          title="View your hosted events"
-        >
-          <img className="user-image" src={userImage} alt="Organizer" />
-        </button>
+        {/* Profile button → hosted events and profile */}
+        <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+          <button
+            className="user-button"
+            onClick={() => navigate("/hosted-events")}
+            title="View your hosted events and profile"
+          >
+            <img className="user-image" src={userImage} alt="Organizer" />
+          </button>
+        </div>
       </div>
 
       <div className="welcoming">Welcome to our event booking platform</div>
@@ -221,7 +248,11 @@ export default function OrganizerHome() {
                 </div>
               </div>
 
-              <button className="book-button">Book Now</button>
+              <div style={{ marginTop: "20px", padding: "12px", background: "#2a2a3b", borderRadius: "8px", textAlign: "center" }}>
+                <p style={{ color: "#4ade80", fontWeight: "bold", margin: 0 }}>
+                  ✓ This is your event - Manage it from your hosted events page
+                </p>
+              </div>
             </div>
           </div>
         </div>

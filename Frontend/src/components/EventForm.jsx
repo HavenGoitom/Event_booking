@@ -31,13 +31,19 @@ export default function EventForm({ onCreated, onClose, onCancel }) {
 
   useEffect(() => {
     try {
-      const prof =
-        JSON.parse(localStorage.getItem("organizer") || "null") ||
-        JSON.parse(localStorage.getItem("userProfile") || "null");
-      if (prof?.email) setForm((f) => ({ ...f, email: prof.email }));
-      if (prof?.name) setForm((f) => ({ ...f, organizationName: prof.name }));
-    } catch {
-      /* ignore */
+      // Try organizer first, then userProfile
+      const organizer = JSON.parse(localStorage.getItem("organizer") || "null");
+      const userProfile = JSON.parse(localStorage.getItem("userProfile") || "null");
+      const prof = organizer || userProfile;
+      
+      if (prof?.email) {
+        setForm((f) => ({ ...f, email: prof.email }));
+      }
+      if (prof?.name) {
+        setForm((f) => ({ ...f, organizationName: prof.name }));
+      }
+    } catch (err) {
+      console.error("Error loading organizer profile:", err);
     }
   }, []);
 

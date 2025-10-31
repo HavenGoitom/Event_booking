@@ -8,17 +8,22 @@ const refreshSecret = process.env.REFRESH_TOKEN_SECRET;
 
 export const generateTokens = (newObject) => {
     //jwt.sign(payload, secretOrPrivateKey, [options, call back]) jwt.sign() syntax
-
+    
+    // Determine role from object (user has phone, organizer has merchantId)
+    const role = newObject.merchantId ? 'org' : 'user';
+    
     //access Token
     const accessToken = jwt.sign({
+        id: newObject.id,
         email: newObject.email,
-        password: newObject.password
+        role: role
     }, accessSecret, { expiresIn: '30d' });
 
     // refresh Token
     const refreshToken = jwt.sign({
+        id: newObject.id,
         email: newObject.email,
-        password: newObject.password
+        role: role
     }, refreshSecret, { expiresIn: '4y' });
 
     return { accessToken, refreshToken}

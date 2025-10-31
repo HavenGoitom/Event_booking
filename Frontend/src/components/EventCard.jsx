@@ -2,45 +2,78 @@
 import React, { useMemo, useState } from "react";
 
 const API_BASE = "https://arifochevents.onrender.com";
+const PLACEHOLDER_IMAGE = "https://via.placeholder.com/400x220/2a2a3b/ffffff?text=No+Image";
 
 export default function EventCard({ event, onClick, onImageError }) {
   const title = event.name || event.title || "Untitled";
+  const location = event.LocationOfEvent || event.location || "TBA";
+  const date = event.date || "";
 
-  // ✅ Use ONLY the backend-provided image. Prefer `url`, then common fallbacks. No placeholders.
+  // ✅ Use ONLY the backend-provided image. Prefer `url`, then common fallbacks. Add placeholder if missing.
+  // Photos are stored in /uploads/eventPhoto/ and served statically - they persist as long as the server is running
   const imgSrc = useMemo(() => {
     let src =
-      event.url ||                // prefer backend-returned final URL
+      event.url ||                // prefer backend-returned final URL (already full URL from backend)
       event.imageURL ||
       event.imageUrl ||
       event.image ||
       event.photo ||
       event.eventPhotoURL ||
+      event.advertisment?.advertisement_images ||
       "";
-    if (!src) return "";
-    if (!/^https?:\/\//i.test(src)) {
-      src = `${API_BASE}${src.startsWith("/") ? "" : "/"}${src}`;
+    
+    if (!src) return PLACEHOLDER_IMAGE;
+    
+    // If it's already a full URL (http:// or https://), use it as is
+    if (/^https?:\/\//i.test(src)) {
+      return src;
     }
+    
+    // Handle relative paths - backend stores photos in /uploads/eventPhoto/
+    if (src.startsWith("/uploads") || src.startsWith("/")) {
+      // Already has leading slash, just prepend API_BASE
+      src = `${API_BASE}${src}`;
+    } else {
+      // No leading slash, add it
+      src = `${API_BASE}/${src}`;
+    }
+    
     return src;
   }, [event]);
 
-  const [hideImg, setHideImg] = useState(false);
+  const [imgError, setImgError] = useState(false);
+
+  // Always ensure we have an image source
+  const finalImgSrc = imgError || !imgSrc || imgSrc === PLACEHOLDER_IMAGE ? PLACEHOLDER_IMAGE : imgSrc;
 
   return (
     <div className="event-card" onClick={() => onClick && onClick(event)}>
-      {!hideImg && imgSrc ? (
-        <img
-          src={imgSrc}
-          alt={title}
-          className="event-img"
-          onError={() => {
-            setHideImg(true);
+      <img
+        src={finalImgSrc}
+        alt={title}
+        className="event-img"
+        onError={() => {
+          if (!imgError) {
+            setImgError(true);
             if (typeof onImageError === "function") onImageError(event);
-          }}
-        />
-      ) : null}
+          }
+        }}
+      />
       <div className="content">
         <h3>{title}</h3>
-        {/* (Organizer text intentionally hidden to avoid IDs/random strings) */}
+        {location && location !== "TBA" && (
+          <p className="event-location">📍 {location}</p>
+        )}
+        {date && (
+          <p className="event-date">📅 {date}</p>
+        )}
+        {(event.priceNormal || event.priceVip) && (
+          <p className="event-price">
+            {event.priceNormal && <span>Normal: {event.priceNormal} ETB</span>}
+            {event.priceNormal && event.priceVip && <span> • </span>}
+            {event.priceVip && <span>VIP: {event.priceVip} ETB</span>}
+          </p>
+        )}
       </div>
     </div>
   );
