@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import "./Auth.css";
 
 const API_BASE = "https://arifochevents.onrender.com";
-const SIGNUP_PATH = "/auth/signup/";
-const LOGIN_PATH = "/auth/login/";
+const SIGNUP_PATH = "/auth/signup";
+const LOGIN_PATH = "/auth/login";
 
 // ---------- helpers ----------
 function saveTokensAndProfile(data, fallbackProfile = {}) {

@@ -8,10 +8,35 @@ export default function EventDetail() {
   const [event, setEvent] = useState(null);
 
   useEffect(() => {
-    // TEMP: find from local mock (in real app, fetch by id)
-    fetch(`http://localhost:5000/api/events/${id}`)
-      .then((res) => res.json())
-      .then((data) => setEvent(data))
+    const API_BASE = "https://arifochevents.onrender.com";
+    const token = localStorage.getItem("accessToken");
+    
+    fetch(`${API_BASE}/events`, {
+      headers: {
+        Accept: "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('Failed to fetch events');
+        return res.json();
+      })
+      .then((data) => {
+        const events = Array.isArray(data) ? data : data.events || data.data || [];
+        const event = events.find((e) => (e.id || e._id) === id);
+        if (event) {
+          setEvent({
+            id: event.id || event._id,
+            name: event.name || 'Untitled Event',
+            description: event.description || '',
+            date: event.date || '',
+            location: event.LocationOfEvent || 'TBA',
+            imageURL: event.imageURL || event.url || event.advertisment?.advertisement_images || '',
+          });
+        } else {
+          throw new Error('Event not found');
+        }
+      })
       .catch((err) => {
         console.error('Error fetching event:', err);
         setEvent({
