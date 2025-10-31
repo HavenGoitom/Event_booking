@@ -403,6 +403,12 @@ export async function getAllEvents() {
                     advertisement_images : true
                 }
             },
+            organiser : {
+                select : {
+                    name : true,
+                    id : true
+                }
+            }
         }
     }
   ); 

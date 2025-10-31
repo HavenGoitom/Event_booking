@@ -19,10 +19,20 @@ function saveTokensAndProfile(data, fallbackProfile = {}) {
   if (at) localStorage.setItem("accessToken", at);
   if (rt) localStorage.setItem("refreshToken", rt);
 
-  if (fallbackProfile && Object.keys(fallbackProfile).length) {
-    localStorage.setItem("userProfile", JSON.stringify(fallbackProfile));
+  // Save profile data - prioritize backend response, then fallback
+  const profileData = (data?.user || data?.organizer || fallbackProfile);
+  
+  if (profileData && Object.keys(profileData).length) {
+    // Save user profile for users, organizer for organizers
+    if (profileData.role === "user" || (!profileData.role && profileData.phone)) {
+      localStorage.setItem("userProfile", JSON.stringify(profileData));
+    } else if (profileData.role === "org" || (!profileData.role && profileData.merchantId)) {
+      localStorage.setItem("organizer", JSON.stringify(profileData));
+      localStorage.setItem("userProfile", JSON.stringify(profileData)); // Also save for compatibility
+    }
   }
-  if (fallbackProfile?.role) localStorage.setItem("role", fallbackProfile.role);
+  
+  if (profileData?.role) localStorage.setItem("role", profileData.role);
 }
 
 async function jfetch(url, init) {
@@ -73,7 +83,12 @@ function SignIn({ onBack, userType }) {
         body: JSON.stringify({ role, email: email.trim(), password }),
       });
 
-      saveTokensAndProfile(data, { email: email.trim(), role });
+      // Save profile data from backend response
+      const profileData = role === "org" 
+        ? { ...data.organizer, role: "org" }
+        : { ...data.user, role: "user" };
+
+      saveTokensAndProfile(data, profileData);
       localStorage.setItem("role", role);
 
       window.location.href = role === "org" ? "/organizer/home" : "/user/home";
@@ -150,12 +165,15 @@ function UserPage({ onBack }) {
         body: JSON.stringify(payload),
       });
 
-      saveTokensAndProfile(data, {
+      // Use backend response data if available, otherwise use frontend data
+      const profileData = data.user || {
         role: "user",
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
-      });
+      };
+
+      saveTokensAndProfile(data, profileData);
 
       window.location.href = "/user/home";
     } catch (e) {
@@ -269,14 +287,18 @@ function OrganizerPage({ onBack }) {
         body: JSON.stringify(payload),
       });
 
-      saveTokensAndProfile(data, {
+      // Use backend response data if available, otherwise use frontend data
+      const profileData = data.organizer || {
         role: "org",
         name: name.trim(),
         email: email.trim(),
-        bank: bank.trim(),
-        bankAccount: bankAccount.trim(),
+        Bank: bank.trim(),
+        BankAccount: bankAccount.trim(),
         merchantId: merchantId.trim(),
-      });
+        DescriptionAboutCompany: descriptionAboutCompany.trim(),
+      };
+
+      saveTokensAndProfile(data, profileData);
 
       window.location.href = "/organizer/home";
     } catch (e) {
