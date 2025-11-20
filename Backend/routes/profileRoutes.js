@@ -6,7 +6,7 @@ import { getProfile, createAndUpdateProfile } from '../controllers/profilePictur
 const profileRouter = express.Router(); //creates a mini sub-application that you can attach routes to.
 
 
-profileRouter.use(authenticateToken); // all routes below are protected
+//profileRouter.use(authenticateToken); // all routes below are protected
 profileRouter.get("/:id", getProfile);
 /*
 it should have the same name as this in the frontend
