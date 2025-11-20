@@ -9,7 +9,7 @@ dotenv.config(); //loads env variables
 
 const app = express();
 app.use(express.json()); //parsing JSON
-//app.use('/uploads', express.static(path.join(process.cwd(), 'uploads'))); //path.join(process.cwd(), 'uploads') builds the absolute filesystem path to the uploads directory (safe across OSes)
+app.use('/uploads', express.static('uploads')); //path.join(process.cwd(), 'uploads') builds the absolute filesystem path to the uploads directory (safe across OSes)
 
 
 
