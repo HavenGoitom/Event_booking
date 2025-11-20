@@ -1,0 +1,357 @@
+/*Auth.css*/
+body {
+  background-color: rgb(41, 41, 41);
+  display: flex;
+  justify-content: center;
+}
+
+.sign-up-box {
+  margin: 70px auto 0;
+  background-color: rgb(26, 26, 26);
+  height: 600px;
+  width: 450px;
+  border-radius: 65px;
+  padding-left: 40px;
+  padding-top: 50px;
+  position: relative;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.title {
+  color: white;
+  margin-bottom: 10px;
+  font-size: 12px;
+  text-transform: uppercase;
+
+  margin-top: 30px;
+  line-height: 20px;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+}
+
+p {
+  color: gray;
+  font-size: 17px;
+  margin-bottom: 0px;
+  line-height: 1.6px;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.sign-in-button {
+  margin-top: 250px;
+  margin-right: 110px;
+  margin-left: 20px;
+  padding: 20px 30px;
+  font-size: 20px;
+  border-radius: 40px;
+  background-color: rgb(26, 42, 72);
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+.sign-in-button:hover,
+.sign-up-button:hover {
+  background-color: rgb(93, 92, 92);
+  transform: scale(1.05);
+}
+.sign-up-button {
+  margin-top: 250px;
+  padding: 15px 25px;
+  font-size: 20px;
+  border-radius: 40px;
+  border: none;
+  background-color: rgb(26, 42, 72);
+  color: white;
+  cursor: pointer;
+}
+
+.sign-up-as {
+  padding: 16px 12px;
+  font-size: 18px;
+  border-radius: 40px;
+  background-color: rgb(26, 42, 72);
+  border: none;
+  color: white;
+  cursor: pointer;
+  width: fit-content;
+  margin-top: 5px;
+  margin-right: 8px;
+}
+
+.dropdown-signin {
+  position: absolute;
+  bottom: 16px; /* places it right under Sign-in button */
+  left: 58px; /* aligns with Sign-in button */
+  background-color: rgb(26, 26, 26);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dropdown-signup {
+  position: absolute;
+  bottom: 16px; /* places it right under Sign-in button */
+  right: 50px; /* aligns with Sign-in button */
+  background-color: rgb(26, 26, 26);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.personal-infos {
+  color: rgb(218, 216, 209);
+  font-size: 18px;
+  font-family: Arial;
+  margin-top: 30px;
+}
+
+.info-input,
+.discription {
+  padding: 10px 30px;
+  border-radius: 5px;
+  border: none;
+  margin-bottom: 15px;
+  width: 80%;
+  max-width: 340px;
+}
+
+.discription {
+  height: 70px;
+}
+
+.back-button {
+  font-size: 2.5rem;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 10px 15px;
+  transition: transform 0.2s ease;
+}
+
+.back-button:hover {
+  transform: scale(1.2);
+  color: #ccc;
+}
+
+.next-button {
+  font-size: 18px;
+  border-radius: 40px;
+  background-color: rgb(26, 42, 72);
+  border: none;
+  color: white;
+  padding: 20px 30px;
+  cursor: pointer;
+}
+
+.next-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.next-button-div {
+  margin-top: 30px;
+  margin-left: 300px;
+  margin-bottom: 40px;
+}
+
+.error {
+  color: #ffb3b3;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.small {
+  color: #a1a1a1;
+  font-size: 12px;
+  margin-top: -8px;
+  margin-bottom: 12px;
+}
+
+/* for the event card */
+.modal-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  line-height: 1.6;
+}
+
+.modal-content h2 {
+  margin-bottom: 8px;
+}
+
+.event-desc {
+  margin-bottom: 12px;
+}
+
+.info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-container {
+  display: flex;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.ticket-box {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+.ticket-box h4 {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.ticket-box.normal {
+  color: #4CAF50;
+}
+
+.ticket-box.vip {
+  color: #FF9800;
+}
+
+.book-button {
+  margin-top: 24px;
+  padding: 12px 20px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.booking-msg {
+  margin-top: 12px;
+  font-weight: bold;
+}
+
+.booking-msg.success {
+  color: green;
+}
+
+.booking-msg.error {
+  color: red;
+}
+
+.ticket-box p {
+  line-height: 0.9;
+}
+
+/* event form */
+
+/* ===== EventForm & Auth Shared Styles ===== */
+.form {
+  background: #1e1e2f;
+  color: #f5f5f5;
+  padding: 40px;
+  border-radius: 16px;
+  max-width: 600px;
+  margin: 60px auto;
+  box-shadow: 0 6px 20px rgba(150, 143, 209, 0.4);
+  transition: all 0.3s ease;
+}
+
+.form h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #00b4d8;
+}
+
+.forms {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+.forms label,
+label {
+  font-size: 15px;
+  color: #ddd;
+  margin-bottom: 6px;
+}
+
+input,
+textarea,
+select {
+  background-color: #2a2a3b;
+  border: 1px solid #444;
+  color: white;
+  padding: 10px 12px;
+  font-size: 15px;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #000000;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+button {
+  background-color: #ececec;
+  border: none;
+  color: rgb(48, 45, 76);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #787aa2;
+}
+
+button[disabled] {
+  background-color: #ffffff;
+  cursor: not-allowed;
+}
+
+.form p {
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+}
+
+input[type="file"] {
+  border: none;
+  background: none;
+  margin-top: 8px;
+  color: #ccc;
+}
+
+/* Layout adjustments */
+.form > div:first-child {
+  border-bottom: 1px solid #333;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.form button[type="button"] {
+  background-color: transparent;
+  color: #e3e3e3;
+}
+
+.form button[type="button"]:hover {
+  color: #ef4444;
+}

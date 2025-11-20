@@ -3,3 +3,8 @@ node_modules
 generated/
 uploads/
 prisma/migrations/
+node_modules
+.env
+generated/
+uploads/
+prisma/migrations/

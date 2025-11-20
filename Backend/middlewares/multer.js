@@ -36,7 +36,7 @@ function createUploader(subfolder) {
 
 // ✅ Create two uploaders
 export const uploadProfile = createUploader('profilePicture');
-export const uploadEvent = createUploader('eventsPhoto');
+export const uploadEvent = createUploader('eventPhoto');
 /*{
   fieldname: 'profilePicture',      // name of the form field
   originalname: 'photo.png',        // original file name from the user's computer
